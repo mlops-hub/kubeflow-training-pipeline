@@ -1,0 +1,9 @@
+/artifacts
+/logs
+
+venv/
+.env
+
+*/__pycache__
+*/*/__pycache__
+/datasets/data-engg
