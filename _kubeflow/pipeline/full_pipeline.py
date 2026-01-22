@@ -22,10 +22,10 @@ from _kubeflow.components.model_components._10_register import register_model_co
 )
 def full_pipeline(
     namespace: str = "_kubeflow-employee-attrition",
-    trainer_image: str = "your-docker-image:latest",
-    cpu: str = "2",
-    memory: str = "4Gi",
-    tracking_uri: str = "http://localhost:5000",
+    trainer_image: str = "python:3.10-slim",
+    cpu: str = "500m",
+    memory: str = "1Gi",
+    tracking_uri: str = "http://mlflow.kubeflow.svc.cluster.local:80",
     experiment_name: str = "employee-attrition-v1",
     registry_name: str = "register-employee-attrition-model",
     recall_threshold: float = 0.70,
@@ -62,14 +62,14 @@ def full_pipeline(
         cpu=cpu,
         memory=memory,
         train_path=preprocess.outputs['train_data'],
-        model_path="/outputs/model.pkl",
-        feature_store_path="/outputs/features.pkl"
     )
+
+    print(train_job)
 
     evaluation_component(
         train_data=preprocess.outputs['train_data'],
-        test_data=preprocess.outptus['test_data'],
-        model=train_job.output
+        test_data=preprocess.outputs['test_data'],
+        model=train_job.outputs['output']
     )
 
     cross_validation_component(
@@ -107,3 +107,5 @@ def full_pipeline(
 #         package_path="full_pipeline.yaml" 
 #     )
 
+        # model_path="/outputs/model.pkl",
+        # feature_store_path="/outputs/features.pkl"

@@ -18,7 +18,7 @@ load_dotenv()
 # FEATURE_STORE = ARTIFACT_PATH / "features.pkl"
 
 
-def trianing_data(train_path: str, model_path: str, feature_store_path: str):
+def training_data(train_path: str, model_path: str, feature_store_path: str):
     df = pd.read_csv(train_path)
 
     X_train = df.drop(columns=['Attrition'])
@@ -35,18 +35,18 @@ def trianing_data(train_path: str, model_path: str, feature_store_path: str):
     print("training completed...")
     joblib.dump(model, model_path)
 
-    return True
+    return model
 
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--trian_path", required=True)
+    parser.add_argument("--train_path", required=True)
     parser.add_argument("--model_path", required=True)
     parser.add_argument("--feature_store_path", required=True)
     args = parser.parse_args()
 
-    trianing_data(
+    training_data(
         train_path=args.train_path,
         model_path=args.model_path, 
         feature_store_path=args.feature_store_path,

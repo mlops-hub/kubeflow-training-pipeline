@@ -2,12 +2,12 @@ from kfp import dsl
 from kfp.dsl import Input, Output, Dataset, Model
 
 @dsl.component(
-    base_image="python:3.11-slim",
+    base_image="python:3.10-slim",
     packages_to_install=[
         "pandas",
         "scikit-learn",
         "joblib",
-        "python-dotenv"
+        "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git"
     ],
 )
 def tuning_component(

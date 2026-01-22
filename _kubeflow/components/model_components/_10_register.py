@@ -1,10 +1,10 @@
 from kfp.dsl import component, Input, Model, Dataset
 
-BASE_IMAGE = "python:3.11-slim"
+BASE_IMAGE = "python:3.10-slim"
 
 @component(
     base_image=BASE_IMAGE,
-    packages_to_install=["pandas", "mlflow", "joblib"],
+    packages_to_install=["pandas", "mlflow", "joblib", "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git"],
 )
 def register_model_component(
     train_data: Input[Dataset],

@@ -1,12 +1,11 @@
 from kfp import dsl
 from kfp.dsl import component, Output, Dataset
 
-BASE_IMAGE = "python:3.11-slim"
+BASE_IMAGE = "python:3.10-slim"
 
 @component(
     base_image=BASE_IMAGE, 
-    packages_to_install=['pandas', '.'],
-    source="./"
+    packages_to_install=['pandas',  "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git"],
 )
 def ingestion_component(
     output_data: Output[Dataset]

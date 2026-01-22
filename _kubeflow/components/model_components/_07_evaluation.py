@@ -1,17 +1,16 @@
 from kfp import dsl
-from kfp.dsl import component, Input, Output, Dataset, Metrics
+from kfp.dsl import component, Input, Dataset, Model
 
-BASE_IMAGE = "python:3.11-slim"
+BASE_IMAGE = "python:3.10-slim"
 
 @component(
     base_image=BASE_IMAGE, 
-    packages_to_install=['pandas', 'scikit-learn', 'joblib', '.'],
-     source="./"
+    packages_to_install=['pandas', 'scikit-learn', 'joblib', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git"],
 )
 def evaluation_component(
     train_data: Input[Dataset],
     test_data: Input[Dataset],
-    model_artifact: Input,
+    model_artifact: Input[Model],
 ):
     import pandas as pd
     from pathlib import Path
