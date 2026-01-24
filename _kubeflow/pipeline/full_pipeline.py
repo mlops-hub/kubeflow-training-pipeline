@@ -18,7 +18,7 @@ from _kubeflow.components.model_components._10_register import register_model_co
 
 @dsl.pipeline( 
     name="Employee Attrition Full Pipeline", 
-    description="Data → Training → Tuning → Evaluation → MLflow Registry"
+    description="Data -> Training -> Tuning -> Evaluation -> MLflow Registry"
 )
 def full_pipeline(
     namespace: str = "_kubeflow-employee-attrition",
@@ -69,18 +69,18 @@ def full_pipeline(
     evaluation_component(
         train_data=preprocess.outputs['train_data'],
         test_data=preprocess.outputs['test_data'],
-        model=train_job.outputs['output']
+        model_artifact=train_job.outputs['model_path']
     )
 
     cross_validation_component(
         train_data=preprocess.outputs['train_data'],
-        model_artifact=train_job.output
+        model_artifact=train_job.outputs['model_path']
     )
 
     tune = tuning_component(
         train_df=preprocess.outputs['train_data'],
         test_df=preprocess.outputs['test_data'],
-        base_model=train_job.output,
+        base_model=train_job.outputs['model_path']
     )
 
     # tune outputs: 
@@ -89,7 +89,7 @@ def full_pipeline(
 
     # model register
     # --------------------------------------------------
-    register = register_model_component(
+    register_model_component(
         train_data=preprocess.outputs['train_data'],
         tuned_model=tune.outputs['tuned_model'],
         tuning_metadata=tune.outputs['tuning_metadata'],

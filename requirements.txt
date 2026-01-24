@@ -7,7 +7,7 @@ pandera
 
 flask
 flask-cors
-dotenv
+python-dotenv
 
 kfp
 kubernetes

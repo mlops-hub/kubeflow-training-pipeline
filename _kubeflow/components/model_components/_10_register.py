@@ -10,6 +10,10 @@ def register_model_component(
     train_data: Input[Dataset],
     tuned_model: Input[Model],
     tuning_metadata: Input[Dataset],
+    tracking_uri: str, 
+    experiment_name: str, 
+    registry_name: str, 
+    recall_threshold: float
 ):
     import pandas as pd
     from src.model_registry.registry import register_best_model
@@ -20,4 +24,13 @@ def register_model_component(
     params = metadata['best_parameters']
     metrics = metadata['best_metrics']
 
-    register_best_model(model_path, df_train, params, metrics)
+    register_best_model(    
+        model_path, 
+        df_train, 
+        params, 
+        metrics, 
+        tracking_uri, 
+        experiment_name, 
+        registry_name, 
+        recall_threshold    
+    )
