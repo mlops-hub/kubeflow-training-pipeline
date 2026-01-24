@@ -11,16 +11,18 @@ def trainer_model_component(
     cpu: str,
     memory: str,
     train_path: Input[Dataset],
-    model_path: Output[Model],
+    base_model: Output[Model],
     feature_store_path: Output[Model]
 ):
+    import os
     from kubernetes import client, config
     
     config.load_incluster_config()
     api = client.CustomObjectsApi()
 
     # Access the actual file path in container
-    train_df_path = train_path.path
+    train_df_path = os.path.join(train_path.path, "train.csv")
+
     model_output_uri = f"s3://mlflow-artifacts/{job_name}/model.pkl" 
     feature_output_uri = f"s3://mlflow-artifacts/{job_name}/features.pkl"
 
@@ -67,7 +69,7 @@ def trainer_model_component(
         body=trainjob_manifest,
     )
 
-    with open(model_path.path, "w") as f:
+    with open(base_model.path, "w") as f:
         f.write(model_output_uri)
 
     with open(feature_store_path.path, "w") as f:

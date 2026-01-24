@@ -10,23 +10,27 @@ def preprocessed_component(
     test_data: Output[Dataset],
     scaler_model: Output[Model],
 ):
+    import os
     import pandas as pd
     import joblib
-    from pathlib import Path
     from src.data_pipeline._06_preprocessing import preprocess_data
 
-    input_path = Path(input_data.path) + "/transformed_data.csv"
+    input_path = os.path.join(input_data.path, "transformed_data.csv")
     df = pd.read_csv(input_path)
 
     train_df, test_df, scaler = preprocess_data(df)
 
-    train_output_path = Path(train_data.path) / "train.csv"
+    os.makedirs(train_data.path, exist_ok=True)
+    os.makedirs(test_data.path, exist_ok=True)
+    os.makedirs(scaler_model.path, exist_ok=True)
+
+    train_output_path = os.path.join(train_data.path, "train.csv")
     train_df.to_csv(train_output_path, index=False)
 
-    test_output_path = Path(test_data.path) / "test.csv"
+    test_output_path = os.path.join(test_data.path, "test.csv")
     test_df.to_csv(test_output_path, index=False)
 
-    scaler_output_path = Path(scaler_model.path) / "preprocessor.pkl"
+    scaler_output_path = os.path.join(scaler_model.path, "preprocessor.pkl")
     joblib.dump(scaler, scaler_output_path)
 
     print("Preprocessing completed.")

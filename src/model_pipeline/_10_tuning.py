@@ -79,7 +79,7 @@ def tuning_data(df_train, df_test, model):
     print(f"Base Model CV:     {base_cv_scores.mean():.4f} (+/- {base_cv_scores.std():.4f})")
     print(f"Tuned Model CV:    {tuned_cv_scores.mean():.4f} (+/- {tuned_cv_scores.std():.4f})")
 
-    return tuned_model
+    return tuned_model, overall_parameters
 
 
 
