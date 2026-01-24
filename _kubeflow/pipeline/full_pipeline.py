@@ -22,7 +22,7 @@ from _kubeflow.components.model_components._10_register import register_model_co
 )
 def full_pipeline(
     namespace: str = "_kubeflow-employee-attrition",
-    trainer_image: str = "python:3.10-slim",
+    trainer_image: str = "sandy345/kubeflow-employee-attrition:latest",
     cpu: str = "500m",
     memory: str = "1Gi",
     tracking_uri: str = "http://mlflow.kubeflow.svc.cluster.local:80",

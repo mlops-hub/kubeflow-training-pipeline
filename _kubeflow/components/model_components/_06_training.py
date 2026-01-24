@@ -1,8 +1,8 @@
 from kfp.dsl import component, Dataset, Input, Output, Model
 
 @component(
-    base_image="python:3.10-slim",
-    packages_to_install=['kubernetes', 'scikit-learn', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git"]
+    base_image="sandy345/kubeflow-employee-attrition:latest",
+    packages_to_install=['kubernetes', 'scikit-learn']
 )
 def trainer_model_component(
     job_name: str,

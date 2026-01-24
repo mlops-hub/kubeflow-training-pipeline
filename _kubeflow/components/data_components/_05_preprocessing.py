@@ -1,11 +1,8 @@
 from kfp import dsl
 from kfp.dsl import component, Input, Output, Dataset, Model
 
-BASE_IMAGE = "python:3.10-slim"
-
 @component(
-    base_image=BASE_IMAGE, 
-    packages_to_install=['pandas', 'scikit-learn', 'joblib', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git"],
+    base_image="sandy345/kubeflow-employee-attrition:latest", 
 )
 def preprocessed_component(
     input_data: Input[Dataset],

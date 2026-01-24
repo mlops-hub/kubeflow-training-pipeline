@@ -6,7 +6,7 @@ from _kubeflow.pipeline.full_pipeline import full_pipeline
 load_dotenv()
 
 PIPELINE_ENDPOINT = os.environ.get("PIPELINE_ENDPOINT", "http://localhost:8080")
-print('endpoint: ', PIPELINE_ENDPOINT)
+# print('endpoint: ', PIPELINE_ENDPOINT)
 
 EXPERIMENT_NAME = "full-pipeline-experiments"
 
