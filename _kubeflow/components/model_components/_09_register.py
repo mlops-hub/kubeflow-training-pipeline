@@ -5,7 +5,7 @@ from kfp.dsl import component, Input, Model, Dataset
 )
 def register_model_component(
     train_data: Input[Dataset],
-    tuned_model: Input[Model],
+    best_model: Input[Model],
     tuning_metadata: Input[Dataset],
     metrics: Input[Dataset],
     tracking_uri: str, 
@@ -15,10 +15,9 @@ def register_model_component(
 ):
     import os
     import json
-    import pandas as pd
     from src.model_registry.registry import register_best_model
 
-    model_path = os.path.join(tuned_model.path, "best_model.pkl")
+    model_path = os.path.join(best_model.path, "best_model.pkl")
     train_df_path = os.path.join(train_data.path, "train.csv")
     
     metadata_file = os.path.join(tuning_metadata.path, "tuning_metadata.json")
