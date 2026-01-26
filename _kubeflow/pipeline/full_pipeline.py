@@ -21,7 +21,7 @@ from _kubeflow.components.model_components._10_register import register_model_co
     description="Data -> Training -> Tuning -> Evaluation -> MLflow Registry"
 )
 def full_pipeline(
-    namespace: str = "_kubeflow-employee-attrition",
+    namespace: str = "kubeflow",
     trainer_image: str = "sandy345/kubeflow-employee-attrition:latest",
     cpu: str = "500m",
     memory: str = "1Gi",
