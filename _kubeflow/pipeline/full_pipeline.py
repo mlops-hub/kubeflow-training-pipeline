@@ -9,11 +9,11 @@ from _kubeflow.components.data_components._04_feature_engg import feature_engg_c
 from _kubeflow.components.data_components._05_preprocessing import preprocessed_component
 
 # model
-from _kubeflow.components.model_components._06_training import trainer_model_component
-from _kubeflow.components.model_components._07_evaluation import evaluation_component
+from _kubeflow.components.model_components._07_training import trainer_model_component
+from _kubeflow.components.model_components._08_evaluation import evaluation_component
 from _kubeflow.components.model_components._08_cross_validation import cross_validation_component
-from _kubeflow.components.model_components._09_tuning import tuning_component
-from _kubeflow.components.model_components._10_register import register_model_component
+from _kubeflow.components.model_components._06_tuning import tuning_component
+from _kubeflow.components.model_components._09_register import register_model_component
 
 
 @dsl.pipeline( 
@@ -53,6 +53,14 @@ def full_pipeline(
 
     # model pipeline
     # ----------------------------------------------------
+    tune = tuning_component(
+        train_data=preprocess.outputs['train_data'],
+        test_data=preprocess.outputs['test_data'],
+    )
+    # tune outputs: 
+    # - tuned_model
+    # - tuning_metadata
+
 
     # trainer job - kubeflow trainer
     train_job = trainer_model_component(
@@ -62,37 +70,26 @@ def full_pipeline(
         cpu=cpu,
         memory=memory,
         train_path=preprocess.outputs['train_data'],
+        tuning_metadata=tune.outptus['tuning_metadata']
     )
+    # train outputs: 
+    # - best_model
+    # - feature_store_path
 
-    print(train_job)
 
-    evaluation_component(
-        train_data=preprocess.outputs['train_data'],
+    evaluation = evaluation_component(
         test_data=preprocess.outputs['test_data'],
-        base_model=train_job.outputs['base_model']
+        best_model=train_job.outputs['best_model']
     )
 
-    cross_validation_component(
-        train_data=preprocess.outputs['train_data'],
-        base_model=train_job.outputs['base_model']
-    )
-
-    tune = tuning_component(
-        train_data=preprocess.outputs['train_data'],
-        test_data=preprocess.outputs['test_data'],
-        base_model=train_job.outputs['base_model']
-    )
-
-    # tune outputs: 
-    # - tuned_model
-    # - tuning_metadata
 
     # model register
     # --------------------------------------------------
     register_model_component(
         train_data=preprocess.outputs['train_data'],
-        tuned_model=tune.outputs['tuned_model'],
+        best_model=train_job.outputs['best_model'],
         tuning_metadata=tune.outputs['tuning_metadata'],
+        metrics=evaluation.outputs['evaluation_metrics'],
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
         registry_name=registry_name,

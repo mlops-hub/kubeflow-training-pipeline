@@ -11,8 +11,9 @@ def trainer_model_component(
     cpu: str,
     memory: str,
     train_path: Input[Dataset],
-    base_model: Output[Model],
-    feature_store_path: Output[Model]
+    tuning_metadata: Input[Dataset],
+    best_model: Output[Model],
+    feature_store_path: Output[Dataset]
 ):
     import os
     from kubernetes import client, config
@@ -22,6 +23,7 @@ def trainer_model_component(
 
     # Access the actual file path in container
     train_df_path = os.path.join(train_path.path, "train.csv")
+    best_params_path = os.path.join(tuning_metadata.path, "tuning_metadata.json")
 
     model_output_uri = f"s3://mlflow-artifacts/{job_name}/model.pkl" 
     feature_output_uri = f"s3://mlflow-artifacts/{job_name}/features.pkl"
@@ -30,6 +32,7 @@ def trainer_model_component(
 
     arguments = [
         "--train_path", train_df_path,
+        "--best_params_path", best_params_path,
         "--model_path", model_output_uri,
         "--feature_store_path", feature_output_uri
     ]
@@ -75,7 +78,7 @@ def trainer_model_component(
         body=trainjob_manifest,
     )
 
-    with open(base_model.path, "w") as f:
+    with open(best_model.path, "w") as f:
         f.write(model_output_uri)
 
     with open(feature_store_path.path, "w") as f:

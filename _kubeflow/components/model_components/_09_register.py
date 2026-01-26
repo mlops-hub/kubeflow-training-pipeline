@@ -7,6 +7,7 @@ def register_model_component(
     train_data: Input[Dataset],
     tuned_model: Input[Model],
     tuning_metadata: Input[Dataset],
+    metrics: Input[Dataset],
     tracking_uri: str, 
     experiment_name: str, 
     registry_name: str, 
@@ -19,19 +20,26 @@ def register_model_component(
 
     model_path = os.path.join(tuned_model.path, "best_model.pkl")
     train_df_path = os.path.join(train_data.path, "train.csv")
-    metadata_file = os.path.join(tuning_metadata.path, "tuning_metrics.csv")
-
-    metadata = pd.read_csv(metadata_file).to_dict(orient='records')[0]
-
+    
+    metadata_file = os.path.join(tuning_metadata.path, "tuning_metadata.json")
+    with open(metadata_file, 'r') as f:
+        overall_parameters = json.load(f)
+    
     # Convert stringified dicts back to dicts 
-    params = json.loads(metadata["best_parameters"].replace("'", '"')) 
-    metrics = json.loads(metadata["best_metrics"].replace("'", '"'))
+    params = { 
+        key: overall_parameters[key] 
+        for key in ["C", "solver", "l1_ratio", "max_iter"] 
+    }
+
+    metrics_file = os.path.join(metrics.path, "evaluation_metrics.json")
+    with open(metrics_file, 'r') as f:
+        eval_metrics = json.load(f)
 
     register_best_model(    
         model_path=model_path, 
         train_df_path=train_df_path, 
         params=params, 
-        metrics=metrics, 
+        metrics=eval_metrics, 
         tracking_uri=tracking_uri, 
         experiment_name=experiment_name, 
         registry_name=registry_name, 

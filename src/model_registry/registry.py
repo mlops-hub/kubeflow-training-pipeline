@@ -1,7 +1,6 @@
 from _mlflow.registry import MLflowRegistry
 import pandas as pd
 import joblib
-from pathlib import Path
 
 
 def register_best_model(
@@ -40,7 +39,7 @@ def register_best_model(
     stage = registry.promote_model(
         model_name=registered.name,
         version=registered.version,
-        metric_value=metrics["recall_ht"],
+        metric_value=metrics["recall"],
         threshold=recall_threshold,
     )
 
@@ -49,17 +48,27 @@ def register_best_model(
 
 
 if __name__ == "__main__":
+    import json
+    from pathlib import Path
+
     BASE_DIR = Path(__file__).resolve().parents[2]
     PREPROCESSED_TRAIN_PATH = BASE_DIR / "datasets" / "data-engg" / "06_preprocess_train_df.csv"
     BEST_MODEL_ARTIFACT = BASE_DIR / "artifacts" / "model_v1" / "best_model.pkl"
-    METRICS_DATA = BASE_DIR / "artifacts" / "model_v1" / "metrics.pkl"
+    TUNING_METADATA = BASE_DIR / "artifacts" / "model_v1" / "tuning_metadata.json"
+    METRICS_DATA = BASE_DIR /"artifacts" / "model_v1" / "evaluation_metrics.json"
 
     model_path = BEST_MODEL_ARTIFACT
     train_df_path = PREPROCESSED_TRAIN_PATH
 
-    overall_data = joblib.load(METRICS_DATA)
-    params = overall_data['best_parameters']
-    metrics = overall_data['best_metrics']
+    with open(TUNING_METADATA, 'r') as f:
+        overall_parameters = json.load(f)
+    params = { 
+        key: overall_parameters[key] 
+        for key in ["C", "solver", "l1_ratio", "max_iter"] 
+    }
+
+    with open(METRICS_DATA, 'r') as f:
+        metrics = json.load(f)
 
     # User‑defined MLflow settings 
     tracking_uri = "http://localhost:5000" 
