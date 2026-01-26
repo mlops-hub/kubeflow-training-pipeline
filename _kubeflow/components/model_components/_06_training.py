@@ -39,9 +39,15 @@ def trainer_model_component(
     trainjob_manifest = {
         "apiVersion": "trainer.kubeflow.org/v1alpha1",
         "kind": "TrainJob",
-        "metadata": {"name": job_name, "namespace": namespace},
+        "metadata": {
+            "name": job_name, 
+            "namespace": namespace
+        },
         "spec": {
-            "trainer": {
+            "runtimeRef": {
+                "name": "torch-distributed"
+            },
+            "trainSpec": {
                 "image": image,
                 "command": command,
                 "args": arguments,
