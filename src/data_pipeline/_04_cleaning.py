@@ -15,7 +15,7 @@ def clean_data(df):
     missing_values = df.isnull().sum()
     print(f"Missing values: {missing_values}")
 
-    df.to_csv(CLEANED_PATH, index=False)
+    # df.to_csv(CLEANED_PATH, index=False)
 
     return df
 

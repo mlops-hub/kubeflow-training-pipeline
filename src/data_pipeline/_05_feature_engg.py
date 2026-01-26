@@ -95,7 +95,7 @@ def feature_data(df):
 
     print(df_fe.tail(10))
 
-    df_fe.to_csv(FEATURED_PATH, index=False)
+    # df_fe.to_csv(FEATURED_PATH, index=False)
 
     return df_fe
 

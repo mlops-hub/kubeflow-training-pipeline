@@ -40,7 +40,7 @@ def validate_data(df):
     try:
         validate_df = employee_schema(df, lazy=True)
         print("Data validation successful.")
-        validate_df.to_csv(VALIDATION_PATH, index=False)
+        # validate_df.to_csv(VALIDATION_PATH, index=False)
         return validate_df
     except pa.errors.SchemaErrors as e:
         print("Data validation errors found:")
@@ -48,6 +48,5 @@ def validate_data(df):
         return None
     
 if __name__ == "__main__":
-
     df = pd.read_csv(INGESTION_PATH)
     validated_df = validate_data(df)

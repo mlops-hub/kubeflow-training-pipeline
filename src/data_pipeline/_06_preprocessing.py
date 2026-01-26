@@ -31,7 +31,7 @@ def preprocess_data(df):
     X_train[numeric_cols] = scaler.fit_transform(X_train[numeric_cols])
     X_test[numeric_cols] = scaler.transform(X_test[numeric_cols])
 
-    joblib.dump(scaler, SCALER_PREPROCESSOR_PATH)
+    # joblib.dump(scaler, SCALER_PREPROCESSOR_PATH)
 
     # 🔑 RESET INDICES (CRITICAL)
     X_train = X_train.reset_index(drop=True)
@@ -43,8 +43,8 @@ def preprocess_data(df):
     test_df = pd.concat([X_test, y_test], axis=1)
 
     # Save preprocessed data
-    train_df.to_csv(PREPROCESSED_PATH / "06_preprocess_train_df.csv", index=False)
-    test_df.to_csv(PREPROCESSED_PATH / "06_preprocess_test_df.csv", index=False)
+    # train_df.to_csv(PREPROCESSED_PATH / "06_preprocess_train_df.csv", index=False)
+    # test_df.to_csv(PREPROCESSED_PATH / "06_preprocess_test_df.csv", index=False)
 
 
     print("Preprocessing completed and data saved.")

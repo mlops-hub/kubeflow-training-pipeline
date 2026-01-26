@@ -69,18 +69,18 @@ def full_pipeline(
     evaluation_component(
         train_data=preprocess.outputs['train_data'],
         test_data=preprocess.outputs['test_data'],
-        model_artifact=train_job.outputs['model_path']
+        base_model=train_job.outputs['base_model']
     )
 
     cross_validation_component(
         train_data=preprocess.outputs['train_data'],
-        model_artifact=train_job.outputs['model_path']
+        base_model=train_job.outputs['base_model']
     )
 
     tune = tuning_component(
-        train_df=preprocess.outputs['train_data'],
-        test_df=preprocess.outputs['test_data'],
-        base_model=train_job.outputs['model_path']
+        train_data=preprocess.outputs['train_data'],
+        test_data=preprocess.outputs['test_data'],
+        base_model=train_job.outputs['base_model']
     )
 
     # tune outputs: 
@@ -107,5 +107,5 @@ def full_pipeline(
 #         package_path="full_pipeline.yaml" 
 #     )
 
-        # model_path="/outputs/model.pkl",
-        # feature_store_path="/outputs/features.pkl"
+# model_path="/outputs/model.pkl",
+# feature_store_path="/outputs/features.pkl"

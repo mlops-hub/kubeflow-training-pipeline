@@ -44,7 +44,7 @@ def tuning_data(df_train, df_test, model):
 
     # get best model and save in models/
     tuned_model = grid.best_estimator_
-    joblib.dump(tuned_model, BEST_MODEL_ARTIFACT)
+    # joblib.dump(tuned_model, BEST_MODEL_ARTIFACT)
 
     best_parameters = grid.best_params_
     print(f'best params: {best_parameters}')
@@ -64,7 +64,7 @@ def tuning_data(df_train, df_test, model):
         "best_parameters": best_parameters,
         "best_metrics": metrics
     }
-    joblib.dump(overall_parameters, METRICS_DATA)
+    # joblib.dump(overall_parameters, METRICS_DATA)
 
     # get trin/test score
     tuned_train_score = tuned_model.score(X_train, y_train) 

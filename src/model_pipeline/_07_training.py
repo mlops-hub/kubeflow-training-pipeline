@@ -26,16 +26,16 @@ def training_data(train_path: str, model_path: str, feature_store_path: str):
 
     # save features before training
     feature_columns = X_train.columns.to_list()
-    joblib.dump(feature_columns, feature_store_path)
+    # joblib.dump(feature_columns, feature_store_path)
 
     print("Training the model....")
     model = LogisticRegression(max_iter=1000, class_weight='balanced')
     model.fit(X_train, y_train)
 
     print("training completed...")
-    joblib.dump(model, model_path)
+    # joblib.dump(model, model_path)
 
-    return model
+    return model, feature_columns
 
 
 
