@@ -14,3 +14,4 @@ kubernetes
 kubeflow-training
 
 mlflow
+boto3
