@@ -38,7 +38,7 @@ def trainer_model_component(
 
     trainjob_manifest = {
         "apiVersion": "trainer.kubeflow.org/v1alpha1",
-        "kind": "TrainerJob",
+        "kind": "TrainJob",
         "metadata": {"name": job_name, "namespace": namespace},
         "spec": {
             "trainer": {
