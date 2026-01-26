@@ -11,7 +11,6 @@ from _kubeflow.components.data_components._05_preprocessing import preprocessed_
 # model
 from _kubeflow.components.model_components._07_training import trainer_model_component
 from _kubeflow.components.model_components._08_evaluation import evaluation_component
-from _kubeflow.components.model_components._08_cross_validation import cross_validation_component
 from _kubeflow.components.model_components._06_tuning import tuning_component
 from _kubeflow.components.model_components._09_register import register_model_component
 
@@ -70,7 +69,7 @@ def full_pipeline(
         cpu=cpu,
         memory=memory,
         train_path=preprocess.outputs['train_data'],
-        tuning_metadata=tune.outptus['tuning_metadata']
+        tuning_metadata=tune.outputs['tuning_metadata']
     )
     # train outputs: 
     # - best_model
