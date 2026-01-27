@@ -15,7 +15,7 @@ def tuning_component(
     import joblib
     import json
     from sklearn.linear_model import LogisticRegression
-    from model_pipeline._07_tuning import tuning_data
+    from src.model_pipeline._07_tuning import tuning_data
 
     train_path = os.path.join(train_data.path, "train.csv")
     train_df = pd.read_csv(train_path)

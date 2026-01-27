@@ -14,7 +14,7 @@ def evaluation_component(
     import json
     import pandas as pd
     from utils.s3_loader import load_model_from_uri
-    from model_pipeline._09_evaluation import evaluate_data
+    from src.model_pipeline._09_evaluation import evaluate_data
 
     test_path = os.path.join(test_data.path, "test.csv")
     test_df = pd.read_csv(test_path)
