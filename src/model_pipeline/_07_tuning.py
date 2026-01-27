@@ -43,8 +43,8 @@ def tuning_data(df_train, df_test, model):
     metrics = {
         "accuracy": accuracy_score(y_test, y_pred),
         "recall": recall_score(y_test, y_pred),
-        "train_score": tuned_model(X_train, X_test),
-        "test_score": tuned_model(X_test, y_test)
+        "train_score": tuned_model.score(X_train, X_test),
+        "test_score": tuned_model.score(X_test, y_test)
     }        
     print('accuracy: ', metrics['accuracy_ht'])
     print('recall: ', metrics['recall_ht'])
