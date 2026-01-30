@@ -1,12 +1,6 @@
 import pandera.pandas as pa
 from pandera import Column, Check
 import pandas as pd
-import os
-from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parents[2]
-INGESTION_PATH = BASE_DIR / "datasets" / "data-engg" / "01_ingestion.csv"
-VALIDATION_PATH = BASE_DIR / "datasets" / "data-engg" / "02_validation.csv"
 
 # 1.Define the schema
 employee_schema = pa.DataFrameSchema(
@@ -36,17 +30,28 @@ employee_schema = pa.DataFrameSchema(
     coerce=True
 )
 
-def validate_data(df):
+def validate_data(df: pd.DataFrame) -> pd.DataFrame:
     try:
         validate_df = employee_schema(df, lazy=True)
         print("Data validation successful.")
-        # validate_df.to_csv(VALIDATION_PATH, index=False)
         return validate_df
     except pa.errors.SchemaErrors as e:
         print("Data validation errors found:")
         print(e.failure_cases)
         return None
     
+
 if __name__ == "__main__":
+    from pathlib import Path
+
+    BASE_DIR = Path(__file__).resolve().parents[2]
+    DATASET_PATH = BASE_DIR / "datasets" / "data-pipeline"
+    INGESTION_PATH = DATASET_PATH / "01_ingestion.csv"
+    VALIDATION_PATH = DATASET_PATH / "02_validation.csv"
+
     df = pd.read_csv(INGESTION_PATH)
+
     validated_df = validate_data(df)
+
+    validated_df.to_csv(VALIDATION_PATH, index=False)
+

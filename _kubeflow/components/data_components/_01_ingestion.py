@@ -10,7 +10,7 @@ def ingestion_component(
 ):
     import os
     import pandas as pd
-    # from src.data_pipeline._01_ingestion import ingestion
+    from src.data_pipeline._01_ingestion import ingestion
 
     df = ingestion()
 

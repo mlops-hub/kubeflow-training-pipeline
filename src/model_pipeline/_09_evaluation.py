@@ -1,29 +1,44 @@
-import os
 import pandas as pd
 import numpy as np
-from pathlib import Path
-import joblib
 import matplotlib.pyplot as plt
+from _mlflow.registry import MLflowRegistry
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, precision_score, recall_score, f1_score, roc_auc_score
-from dotenv import load_dotenv
 
-load_dotenv()
 
-def evaluate_data(df_test: pd.DataFrame, model: str):
-    X_test = df_test.drop(columns=['Attrition'])
-    y_test = df_test['Attrition']
+def evaluate_data(test_path: str, tracking_uri: str, experiment_name: str):
 
-    # predict
-    y_pred = model.predict(X_test)
-     
-    # metrics
-    metrics = {
-        "accuracy": accuracy_score(y_test, y_pred),
-        "precision": precision_score(y_test, y_pred),
-        "recall": recall_score(y_test, y_pred),
-        "f1": f1_score(y_test, y_pred),
-        "roc_auc": roc_auc_score(y_test, y_pred),
-    }
+    registry = MLflowRegistry(
+        tracking_uri=tracking_uri,
+        experiment_name=experiment_name
+    )
+
+    metadata = registry.get_model_uri_from_mlflow()
+    print('metadata: ', metadata)
+
+    with registry.start_run(run_id=metadata['run_id']):
+
+        # load model form MLflow
+        model = registry.load_model(metadata=metadata)
+
+        df_test = pd.read_csv(test_path)
+        X_test = df_test.drop(columns=['Attrition'])
+        y_test = df_test['Attrition']
+
+        # predict
+        y_pred = model.predict(X_test)
+        
+        # metrics
+        metrics = {
+            "accuracy": accuracy_score(y_test, y_pred),
+            "precision": precision_score(y_test, y_pred),
+            "recall": recall_score(y_test, y_pred),
+            "f1": f1_score(y_test, y_pred),
+            "roc_auc": roc_auc_score(y_test, y_pred),
+        }
+
+        print('metrics: ', metrics)
+
+        registry.log_evaluation_metrics(metrics)
 
     conf_matrix = confusion_matrix(y_test, y_pred)
     class_report = classification_report(y_test, y_pred)
@@ -33,8 +48,9 @@ def evaluate_data(df_test: pd.DataFrame, model: str):
     print(class_report)
 
     # feature importance
-    feature_names = X_test.columns
-    coef = model.coef_[0]
+    feature_names = model.named_steps["preprocessor"].get_feature_names_out()
+    logreg = model.named_steps["model"]
+    coef = logreg.coef_[0]
     coef_df = pd.DataFrame({
         'Feature': feature_names, 
         'Coefficient': coef,
@@ -54,14 +70,14 @@ def evaluate_data(df_test: pd.DataFrame, model: str):
 
 
 if __name__ == "__main__":
+    from pathlib import Path
+
     BASE_DIR = Path(__file__).resolve().parents[2]
-    PREPROCESSED_TEST_PATH = BASE_DIR / "datasets" / "data-engg" / "06_preprocess_test_df.csv"
-    MODEL_ARTIFACT = BASE_DIR / "artifacts" / "model_v1" / "best_model.pkl"
-    METRICS_PATH = BASE_DIR /"artifacts" / "model_v1" / "evaluation_metrics.json"
+    DATASET_PATH = BASE_DIR / "datasets" / "data-pipeline"
+    TEST_PATH = DATASET_PATH / "06_preprocess_test_df.csv"
 
-    model = joblib.load(MODEL_ARTIFACT)
-    df_test = pd.read_csv(PREPROCESSED_TEST_PATH)
-
-    metrics = evaluate_data(df_test, model)
-
-    joblib.dump(metrics, METRICS_PATH)
+    evaluate_data(
+        TEST_PATH,
+        tracking_uri="http://localhost:5000", 
+        experiment_name="employee-attrition-v1", 
+    )

@@ -15,3 +15,5 @@ kubeflow-training
 
 mlflow
 boto3
+
+kserve

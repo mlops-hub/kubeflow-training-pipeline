@@ -1,13 +1,9 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
-from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parents[2]
-VALIDATION_PATH = BASE_DIR / "datasets" / "data-engg" / "02_validation.csv"
-EDA_PATH = BASE_DIR / "datasets" / "data-engg" / "03_eda_df.csv"
 
-def eda_data(df):
+def eda_data(df: pd.DataFrame) -> pd.DataFrame:
     # Basic statistics
     print("Basic Statistics:")
     print(df.describe(include='all'))
@@ -46,6 +42,18 @@ def eda_data(df):
     df.to_csv(EDA_PATH, index=False)
     return df
 
+
 if __name__ == "__main__":
+    from pathlib import Path
+
+    BASE_DIR = Path(__file__).resolve().parents[2]
+    DATASET_PATH = BASE_DIR / "datasets" / "data-pipeline"
+    VALIDATION_PATH = DATASET_PATH / "02_validation.csv"
+    EDA_PATH = DATASET_PATH / "03_eda_df.csv"
+
     df = pd.read_csv(VALIDATION_PATH)
-    eda_data(df)
+
+    eda_df = eda_data(df)
+    
+    eda_df.to_csv(EDA_PATH, index=False)
+

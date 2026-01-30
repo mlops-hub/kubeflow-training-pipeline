@@ -1,15 +1,7 @@
-from pathlib import Path
+import json
 import mlflow
 from mlflow.models import infer_signature
 from mlflow.tracking import MlflowClient
-
-
-BASE_DIR = Path(__file__).resolve().parents[2]
-PREPROCESSED_TRAIN_PATH = BASE_DIR / "datasets" / "data-engg" / "06_preprocess_train_df.csv"
-
-BEST_MODEL_ARTIFACT = BASE_DIR / "artifacts" / "model_v1" / "best_model.pkl"
-MLFLOW_MODEL_INFO = BASE_DIR / "artifacts" / "model_v1" / "model_info.pkl"
-THRESHOLD = 0.70
 
 
 class MLflowRegistry:
@@ -22,15 +14,20 @@ class MLflowRegistry:
         self.client = MlflowClient()
 
     # start run
-    def start_run(self, run_name: str = None):
-        return mlflow.start_run(run_name=run_name)
+    def start_run(self, run_name: str = None, run_id: str = None):
+        return mlflow.start_run(run_name=run_name, run_id=run_id)
 
 
-    def log_model(self, model, X_train, parameters: dict, metrics: dict[str, float], artifact_name: str):
+    def log_model(
+        self, 
+        model, 
+        X_train, 
+        parameters: dict, 
+        artifact_name: str
+    ):
         signature = infer_signature(X_train, model.predict(X_train))
 
         mlflow.log_params(parameters)
-        mlflow.log_metrics(metrics)
 
         model_info = mlflow.sklearn.log_model(
             sk_model=model,
@@ -39,12 +36,88 @@ class MLflowRegistry:
             input_example=X_train.iloc[:5],
         )
 
-        return {
+        mlflow_metadata = {
             "run_id": mlflow.active_run().info.run_id,
             "model_uri": model_info.model_uri,
-            "recall": metrics['recall_ht'],
-            "artifact_name": artifact_name
+            "artifact_name": artifact_name,
         }
+        
+        features = list(X_train.columns)
+        features = {"raw_features": features}
+        mlflow.log_dict(features, "features_schema.json")
+        mlflow.log_param("num_features", len(features['raw_features']))
+        mlflow.log_param("feature_list", features)
+
+        mlflow.set_tag("artifact_name", artifact_name)
+        mlflow.log_dict(mlflow_metadata, "mlflow_metadata.json")
+
+        return True
+    
+
+    def get_model_uri_from_mlflow(self):
+        runs = mlflow.search_runs(
+            filter_string="tags.artifact_name = 'employee-attrition-model'",
+            order_by=["start_time DESC"],
+            max_results=1,
+        )
+        run_id = runs.iloc[0].run_id
+
+        local_path = mlflow.artifacts.download_artifacts(
+            run_id=run_id,
+            artifact_path="mlflow_metadata.json"
+        )
+
+        with open(local_path) as f:
+            metadata = json.load(f)
+        
+        return metadata
+
+
+    def get_metric_from_mlfow(self):
+        runs = mlflow.search_runs(
+            filter_string="tags.artifact_name = 'employee-attrition-model'",
+            order_by=["start_time DESC"],
+            max_results=1,
+        )
+        run_id = runs.iloc[0].run_id
+
+        run = self.client.get_run(run_id)
+        metrics = run.data.metrics
+
+        return metrics
+
+    
+    def log_evaluation_metrics(self, metrics):
+        mlflow.log_metrics(metrics)
+        return True
+
+
+    def load_model(self, metadata: dict = None, model_uri: str = None):
+        if metadata:
+            model_uri = f"runs:/{metadata['run_id']}/{metadata['artifact_name']}"
+        print('model-uri: ', model_uri)
+        model = mlflow.sklearn.load_model(model_uri)
+        return model
+
+
+    def load_features_from_mlflow(self):
+        runs = mlflow.search_runs(
+            filter_string="tags.artifact_name = 'employee-attrition-model'",
+            order_by=["start_time DESC"],
+            max_results=1,
+        )
+        run_id = runs.iloc[0].run_id
+
+        local_path = mlflow.artifacts.download_artifacts(
+            run_id=run_id,
+            artifact_path="features_schema.json"
+        )
+
+        with open(local_path) as f:
+            features = json.load(f)
+        
+        return features['raw_features']
+
 
 
     def register_model(self, metadata, registry_name):

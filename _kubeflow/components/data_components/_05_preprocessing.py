@@ -30,7 +30,7 @@ def preprocessed_component(
     test_output_path = os.path.join(test_data.path, "test.csv")
     test_df.to_csv(test_output_path, index=False)
 
-    scaler_output_path = os.path.join(scaler_model.path, "preprocessor.pkl")
+    scaler_output_path = os.path.join(scaler_model.path, "scaler.pkl")
     joblib.dump(scaler, scaler_output_path)
 
     print("Preprocessing completed.")

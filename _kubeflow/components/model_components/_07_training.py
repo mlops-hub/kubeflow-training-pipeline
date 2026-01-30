@@ -11,9 +11,8 @@ def trainer_model_component(
     cpu: str,
     memory: str,
     train_path: Input[Dataset],
+    scaler_path: Input[Model],
     tuning_metadata: Input[Dataset],
-    best_model: Output[Model],
-    feature_store_path: Output[Dataset]
 ):
     import os
     from kubernetes import client, config
@@ -22,22 +21,25 @@ def trainer_model_component(
     api = client.CustomObjectsApi()
 
     # Access the actual file path in container
-    train_df_path = os.path.join(train_path.path, "train.csv")
+    train_path = os.path.join(train_path.path, "train.csv")
+    scaler_path = os.path.join(scaler_path.path, "scaler.pkl")
     best_params_path = os.path.join(tuning_metadata.path, "tuning_metadata.json")
 
-    model_output_uri = f"s3://mlflow-artifacts/{job_name}/model.pkl" 
-    feature_output_uri = f"s3://mlflow-artifacts/{job_name}/features.pkl"
+    # model_output_uri = f"s3://mlflow-artifacts/{job_name}/model.pkl" 
+    # feature_output_uri = f"s3://mlflow-artifacts/{job_name}/features.pkl"
 
-    command = ["python", "-m", "src.model_pipeline._07_training"]
+    command = ["python", "-m", "src.model_pipeline._08_training"]
 
     arguments = [
-        "--train_path", train_df_path,
+        "--train_path", train_path,
+        "--scaler_path", scaler_path,
         "--best_params_path", best_params_path,
-        "--model_path", model_output_uri,
-        "--feature_store_path", feature_output_uri
     ]
 
-    env = []
+    env = [
+        {"name": "MLFLOW_TRACKING_URI", "value": "http://mlflow.kubeflow.svc.cluster.local:80"},
+        {"name": "MLFLOW_EXPERIMENT_NAME", "value": "employee-attrition-v1"},
+    ]
 
     trainjob_manifest = {
         "apiVersion": "trainer.kubeflow.org/v1alpha1",
@@ -77,11 +79,5 @@ def trainer_model_component(
         plural="trainjobs",
         body=trainjob_manifest,
     )
-
-    with open(best_model.path, "w") as f:
-        f.write(model_output_uri)
-
-    with open(feature_store_path.path, "w") as f:
-        f.write(feature_output_uri)
 
     print(f"✅ Trainer Job {job_name} created in namespace {namespace}")

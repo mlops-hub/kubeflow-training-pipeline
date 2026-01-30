@@ -52,43 +52,30 @@ def full_pipeline(
 
     # model pipeline
     # ----------------------------------------------------
-    tune = tuning_component(
+    tuning = tuning_component(
         train_data=preprocess.outputs['train_data'],
         test_data=preprocess.outputs['test_data'],
     )
-    # tune outputs: 
-    # - tuned_model
-    # - tuning_metadata
+    # tune outputs: tuning_metadata
 
 
     # trainer job - kubeflow trainer
-    train_job = trainer_model_component(
+    trainer_model_component(
         job_name="attrition-trainer-job",
         namespace=namespace,
         image=trainer_image,
         cpu=cpu,
         memory=memory,
         train_path=preprocess.outputs['train_data'],
-        tuning_metadata=tune.outputs['tuning_metadata']
+        scaler_path=preprocess.outputs['scaler_model'],
+        tuning_metadata=tuning.outputs['tuning_metadata']
     )
-    # train outputs: 
-    # - best_model
-    # - feature_store_path
 
-
-    evaluation = evaluation_component(
+    evaluation_component(
         test_data=preprocess.outputs['test_data'],
-        best_model=train_job.outputs['best_model']
     )
 
-
-    # model register
-    # --------------------------------------------------
     register_model_component(
-        train_data=preprocess.outputs['train_data'],
-        best_model=train_job.outputs['best_model'],
-        tuning_metadata=tune.outputs['tuning_metadata'],
-        metrics=evaluation.outputs['evaluation_metrics'],
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
         registry_name=registry_name,

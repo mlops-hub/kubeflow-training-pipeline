@@ -3,16 +3,10 @@
 # | **Years at Company** | Years in the *current role / position* | Usually smaller, role-specific |
 # | **Company Tenure**   | Total years employed at the company    | Usually ≥ Years at Company     |
 
-
-import os
 import pandas as pd
-from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parents[2]
-CLEANED_PATH = BASE_DIR / "datasets" / "data-engg" / "04_cleaned_df.csv"
-FEATURED_PATH = BASE_DIR / "datasets" / "data-engg" / "05_feature_engg_df.csv"
 
-def feature_data(df):
+def feature_data(df: pd.DataFrame) -> pd.DataFrame:
     df_fe = df.copy()
 
     # Encoding
@@ -44,15 +38,15 @@ def feature_data(df):
 
 
     # Aggregate satisfaction
+    # --------------------------------------------------
     df_fe["OverallSatisfaction"] = ((df_fe["Work-Life Balance"] + df_fe["Job Satisfaction"] + df_fe["Employee Recognition"]) / 3).round().astype("Int64")
     df_fe = df_fe.drop(columns=["Work-Life Balance", "Job Satisfaction", "Employee Recognition"])
-
 
     df_fe['Opportunities'] = df_fe['Leadership Opportunities'] + df_fe['Innovation Opportunities']
     df_fe = df_fe.drop(columns=['Leadership Opportunities', 'Innovation Opportunities'])
 
-
     # annual income binning
+    # -----------------------------------------------
     df_fe["AnnualIncome"] = df_fe["Monthly Income"] * 12
 
     df_fe["AnnualIncome"] = pd.cut(
@@ -63,7 +57,6 @@ def feature_data(df):
     ).astype("Int64")
     df_fe = df_fe.drop(columns=["Monthly Income"])
 
-
     # age binning
     df_fe['AgeGroup'] = pd.cut(
         df_fe['Age'], 
@@ -73,6 +66,7 @@ def feature_data(df):
     df_fe = df_fe.drop(columns=['Age'])
 
     # Years At Company and Company Tenure 
+    # -----------------------------------------------------
     # 1. Convert to proper years as dataset is in months.
     df_fe["Years at Company"] = (df_fe["Years at Company"] / 12).round(2)
     df_fe["Company Tenure"] = (df_fe["Company Tenure"] / 12).round(2)
@@ -95,11 +89,20 @@ def feature_data(df):
 
     print(df_fe.tail(10))
 
-    # df_fe.to_csv(FEATURED_PATH, index=False)
-
     return df_fe
 
 
 if __name__ == "__main__":
+    from pathlib import Path
+
+    BASE_DIR = Path(__file__).resolve().parents[2]
+    DATASET_PATH = BASE_DIR / "datasets" / "data-pipeline"
+    CLEANED_PATH = DATASET_PATH / "04_cleaned_df.csv"
+    FEATURED_PATH = DATASET_PATH / "05_feature_engg_df.csv"
+
+
     df = pd.read_csv(CLEANED_PATH)
-    feature_data(df)
+
+    feature_df = feature_data(df)
+
+    feature_df.to_csv(FEATURED_PATH, index=False)
