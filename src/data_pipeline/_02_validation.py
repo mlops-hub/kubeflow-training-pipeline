@@ -30,8 +30,11 @@ employee_schema = pa.DataFrameSchema(
     coerce=True
 )
 
-def validate_data(df: pd.DataFrame) -> pd.DataFrame:
+
+
+def validate_data(df: str) -> pd.DataFrame:
     try:
+        df = pd.read_csv(df)
         validate_df = employee_schema(df, lazy=True)
         print("Data validation successful.")
         return validate_df
@@ -42,16 +45,29 @@ def validate_data(df: pd.DataFrame) -> pd.DataFrame:
     
 
 if __name__ == "__main__":
-    from pathlib import Path
+    import os
+    import boto3
+    from io import BytesIO
+    from dotenv import load_dotenv
 
-    BASE_DIR = Path(__file__).resolve().parents[2]
-    DATASET_PATH = BASE_DIR / "datasets" / "data-pipeline"
-    INGESTION_PATH = DATASET_PATH / "01_ingestion.csv"
-    VALIDATION_PATH = DATASET_PATH / "02_validation.csv"
+    load_dotenv()
 
-    df = pd.read_csv(INGESTION_PATH)
+    S3_BUCKET = os.environ.get("S3_BUCKET", "datasets")
+    S3_KEY = os.environ.get("S3_KEY", "raw")
+
+    s3 = boto3.client('s3')
+
+    input_key = f"{S3_KEY}/ingestion/ingestion.csv"
+    obj = s3.get_object(Bucket=S3_BUCKET, Key=input_key)
+    df = BytesIO(obj['Body'].read())
 
     validated_df = validate_data(df)
 
-    validated_df.to_csv(VALIDATION_PATH, index=False)
+    if validated_df is not None:
+        output_key = f"{S3_KEY}/validation/validation.csv"
+        buffer = BytesIO()
+        validated_df.to_csv(buffer, index=False)
+        buffer.seek(0)
+        s3.upload_fileobj(buffer, Bucket=S3_BUCKET, Key=output_key)
+        print(f"✅ Validated dataset uploaded to s3://{S3_BUCKET}/{output_key}")
 

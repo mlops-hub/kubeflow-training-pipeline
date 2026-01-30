@@ -1,10 +1,12 @@
+from typing import Union
 import pandas as pd
+from io import BytesIO
 from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
-def preprocess_data(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, StandardScaler]:
-    df_pp = df.copy()
+def preprocess_data(df: Union[str, BytesIO, bytes]) -> tuple[pd.DataFrame, pd.DataFrame, StandardScaler]:
+    df_pp = pd.read_csv(df)
 
     # Separate features and target
     X = df_pp.drop(columns=['Attrition'])
@@ -25,7 +27,7 @@ def preprocess_data(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, Stand
     #  - Check if distance between 1 and 2 is same as 3 and 4 ?
     #  - use OneHotEnoder unless you have strong reason not to.
     CATEGORICAL_COLS = ["Education Level", "Job Level", "Company Size", "Performance Rating", "AgeGroup", "OverallSatisfaction", "Opportunities", "Company Reputation" ]
-    
+
     preprocessor = ColumnTransformer(
         transformers=[
             ("num", StandardScaler(), NUMERIC_COLS),
@@ -47,24 +49,40 @@ def preprocess_data(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, Stand
 
 if __name__ == "__main__":
     import os
-    from pathlib import Path
+    import boto3
     import joblib
-    
-    BASE_DIR = Path(__file__).resolve().parents[2]    
-    DATASET_PATH = BASE_DIR / "datasets" / "data-pipeline"
-    FEATURED_PATH = DATASET_PATH / "05_feature_engg_df.csv"
-    TRAIN_PATH = DATASET_PATH / "06_preprocess_train_df.csv"
-    TEST_PATH = DATASET_PATH / "06_preprocess_test_df.csv"
+    from io import BytesIO
+    from dotenv import load_dotenv
 
-    ARTIFACTS_PATH = BASE_DIR / "artifacts" / "model_v1"
-    os.makedirs(ARTIFACTS_PATH, exist_ok=True)
-    
-    PREPROCESSOR_PATH = ARTIFACTS_PATH / "preprocessor.pkl"
+    load_dotenv()
 
-    df = pd.read_csv(FEATURED_PATH)
-    train_df, test_df, preprocesor = preprocess_data(df)
+    S3_BUCKET = os.environ.get("S3_BUCKET", "datasets")
+    S3_KEY = os.environ.get("S3_KEY", "raw")
 
-    # Save preprocessed data
-    joblib.dump(preprocesor, PREPROCESSOR_PATH)
-    train_df.to_csv(TRAIN_PATH, index=False)
-    test_df.to_csv(TEST_PATH, index=False)
+    s3 = boto3.client('s3')
+
+    input_key = f"{S3_KEY}/feature_engg/feature_engg.csv"
+    obj = s3.get_object(Bucket=S3_BUCKET, Key=input_key)
+    df = BytesIO(obj['Body'].read())
+
+    train_df, test_df, preprocessor = preprocess_data(df)
+
+    def upload_df_to_s3(df: pd.DataFrame, bucket: str, key: str):
+        buffer = BytesIO()
+        df.to_csv(buffer, index=False)
+        buffer.seek(0)
+        s3.upload_fileobj(buffer, Bucket=bucket, Key=key)
+        print(f"✅ Uploaded {key} to s3://{bucket}/{key}")
+
+    upload_df_to_s3(train_df, S3_BUCKET, f"{S3_KEY}/preprocessing/train_df.csv")
+    upload_df_to_s3(test_df, S3_BUCKET, f"{S3_KEY}/preprocessing/test_df.csv")
+
+    # --- 4. Upload preprocessor.pkl to S3 ---
+    def upload_object_to_s3(obj, bucket: str, key: str):
+        buffer = BytesIO()
+        joblib.dump(obj, buffer)
+        buffer.seek(0)
+        s3.upload_fileobj(buffer, Bucket=bucket, Key=key)
+        print(f"✅ Uploaded {key} to s3://{bucket}/{key}")
+
+    upload_object_to_s3(preprocessor, S3_BUCKET, f"{S3_KEY}/preprocessing/preprocessor.pkl")

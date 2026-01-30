@@ -14,6 +14,9 @@ from _kubeflow.components.model_components._08_evaluation import evaluation_comp
 from _kubeflow.components.model_components._06_tuning import tuning_component
 from _kubeflow.components.model_components._09_register import register_model_component
 
+# util
+from _kubeflow.components.util.wait_job import wait_for_training
+
 
 @dsl.pipeline( 
     name="Employee Attrition Full Pipeline", 
@@ -31,7 +34,10 @@ def full_pipeline(
 ):
     # data pipeline
     # -----------------------------------------------------
-    ingest = ingestion_component()
+    ingest = ingestion_component(
+        bucket="ml-basics", 
+        input_key="employee-attrition/employee_attrition.csv"
+    )
     validate = validation_component(
         input_data=ingest.outputs['output_data']
     )
@@ -48,39 +54,47 @@ def full_pipeline(
     # preprocess outputs: 
     # - train_data 
     # - test_data 
-    # - scaler_model
+    # - preprocessor_model
 
     # model pipeline
     # ----------------------------------------------------
     tuning = tuning_component(
         train_data=preprocess.outputs['train_data'],
         test_data=preprocess.outputs['test_data'],
+        preprocessor_model=preprocess.outputs['preprocessor_model']
     )
     # tune outputs: tuning_metadata
 
 
     # trainer job - kubeflow trainer
-    trainer_model_component(
+    job = trainer_model_component(
         job_name="attrition-trainer-job",
         namespace=namespace,
         image=trainer_image,
         cpu=cpu,
         memory=memory,
         train_path=preprocess.outputs['train_data'],
-        scaler_path=preprocess.outputs['scaler_model'],
+        preprocessor_model=preprocess.outputs['preprocessor_model'],
         tuning_metadata=tuning.outputs['tuning_metadata']
     )
 
-    evaluation_component(
-        test_data=preprocess.outputs['test_data'],
+    wait = wait_for_training(
+        job_name=job.outputs['job_output'],
+        namespace=namespace
     )
+
+    eval_step = evaluation_component(
+        test_data=preprocess.outputs['test_data'],
+        tracking_uri=tracking_uri,
+        experiment_name=experiment_name
+    ).after(wait)
 
     register_model_component(
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
         registry_name=registry_name,
         recall_threshold=recall_threshold,
-    )
+    ).after(eval_step)
 
 
 # Compile pipeline 

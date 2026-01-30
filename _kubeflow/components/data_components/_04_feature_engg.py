@@ -9,18 +9,24 @@ def feature_engg_component(
     output_data: Output[Dataset]
 ):
     import os
-    import pandas as pd
+    import boto3
     from src.data_pipeline._05_feature_engg import feature_data
 
-    input_path = os.path.join(input_data.path, "cleaned_data.csv")
-    df = pd.read_csv(input_path)
-
-    feature_df = feature_data(df)
+    input_path = os.path.join(input_data.path, "cleaned.csv")
+    
+    feature_df = feature_data(input_path)
 
     os.makedirs(output_data.path, exist_ok=True)
-    output_path = os.path.join(output_data.path, "transformed_data.csv")
+    output_path = os.path.join(output_data.path, "feature_engg.csv")
     feature_df.to_csv(output_path, index=False)
 
+    # save in s3
+    s3 = boto3.client('s3')
+    bucket = "ml-basics"
+    key = "employee-attrition/feature_engg"
+
+    s3.upload_file(output_path, bucket, f"{key}/feature_engg.csv")
+    
     print(f"Feature engg is completed. Saved to {output_path}")
 
 

@@ -11,8 +11,9 @@ def trainer_model_component(
     cpu: str,
     memory: str,
     train_path: Input[Dataset],
-    scaler_path: Input[Model],
+    preprocessor_model: Input[Model],
     tuning_metadata: Input[Dataset],
+    job_output: Output[str]
 ):
     import os
     from kubernetes import client, config
@@ -22,17 +23,16 @@ def trainer_model_component(
 
     # Access the actual file path in container
     train_path = os.path.join(train_path.path, "train.csv")
-    scaler_path = os.path.join(scaler_path.path, "scaler.pkl")
+    preprocessor_model_path = os.path.join(preprocessor_model.path, "preprocessor.pkl")
     best_params_path = os.path.join(tuning_metadata.path, "tuning_metadata.json")
 
     # model_output_uri = f"s3://mlflow-artifacts/{job_name}/model.pkl" 
-    # feature_output_uri = f"s3://mlflow-artifacts/{job_name}/features.pkl"
 
     command = ["python", "-m", "src.model_pipeline._08_training"]
 
     arguments = [
         "--train_path", train_path,
-        "--scaler_path", scaler_path,
+        "--preprocessor_path", preprocessor_model_path,
         "--best_params_path", best_params_path,
     ]
 
@@ -72,6 +72,7 @@ def trainer_model_component(
         }
     }
 
+
     api.create_namespaced_custom_object(
         group="trainer.kubeflow.org",
         version="v1alpha1",
@@ -81,3 +82,6 @@ def trainer_model_component(
     )
 
     print(f"✅ Trainer Job {job_name} created in namespace {namespace}")
+
+    with open(job_output.path, 'w') as f:
+        f.write(job_name)

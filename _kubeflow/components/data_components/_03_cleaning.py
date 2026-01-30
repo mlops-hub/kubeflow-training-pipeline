@@ -1,4 +1,4 @@
-from kfp import dsl
+
 from kfp.dsl import component, Input, Output, Dataset
 
 
@@ -10,17 +10,23 @@ def cleaned_component(
     output_data: Output[Dataset]
 ):
     import os
-    import pandas as pd
+    import boto3
     from src.data_pipeline._04_cleaning import clean_data
 
-    input_path = os.path.join(input_data.path, "validated.csv")
-    df = pd.read_csv(input_path)
+    input_path = os.path.join(input_data.path, "validation.csv")
 
-    clean_df = clean_data(df)
+    clean_df = clean_data(input_path)
 
     os.makedirs(output_data.path, exist_ok=True)
-    output_path = os.path.join(output_data.path, "cleaned_data.csv")
+    output_path = os.path.join(output_data.path, "cleaned.csv")
     clean_df.to_csv(output_path, index=False)
+
+    # save in s3
+    s3 = boto3.client('s3')
+    bucket = "ml-basics"
+    key = "employee-attrition/cleaned"
+
+    s3.upload_file(output_path, bucket, f"{key}/cleaned.csv")
 
     print(f"Cleaning completed. Saved to {output_path}")
 

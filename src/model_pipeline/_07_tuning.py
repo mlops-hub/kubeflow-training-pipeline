@@ -2,7 +2,7 @@ import pandas as pd
 import joblib
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import GridSearchCV, StratifiedKFold, cross_val_score
+from sklearn.model_selection import GridSearchCV, StratifiedKFold
 from sklearn.metrics import accuracy_score, recall_score
 
 
@@ -76,19 +76,35 @@ def tuning_data(train_path: str, test_path: str, preprocessor_path: str) -> dict
 
 if __name__ == "__main__":
     import os
-    from pathlib import Path
+    import boto3
+    import joblib
+    from io import BytesIO
     import json
+    from dotenv import load_dotenv
 
-    BASE_DIR = Path(__file__).resolve().parents[2]
-    DATASET_PATH = BASE_DIR / "datasets" / "data-pipeline"
-    TRAIN_PATH =  DATASET_PATH / "06_preprocess_train_df.csv"
-    TEST_PATH = DATASET_PATH / "06_preprocess_test_df.csv"
+    load_dotenv()
 
-    ARTIFACTS_PATH = BASE_DIR / "artifacts" / "model_v1"
-    PREPROCESSOR_PATH = ARTIFACTS_PATH / "preprocessor.pkl"
-    TUNING_METADATA = ARTIFACTS_PATH / "tuning_metadata.json"
+    S3_BUCKET = os.environ.get("S3_BUCKET", "datasets")
+    S3_KEY = os.environ.get("S3_KEY", "raw")
 
-    overall_parameters = tuning_data(TRAIN_PATH, TEST_PATH, PREPROCESSOR_PATH)
+    s3 = boto3.client('s3')
 
-    with open(TUNING_METADATA, 'w') as f:
-        json.dump(overall_parameters, f)
+    def load_from_s3(bucket: str, key: str):
+        obj = s3.get_object(Bucket=bucket, Key=key)
+        df = BytesIO(obj['Body'].read())
+        return df
+
+    train_path = load_from_s3(S3_BUCKET, f"{S3_KEY}/preprocessing/train_df.csv")
+    test_path = load_from_s3(S3_BUCKET, f"{S3_KEY}/preprocessing/test_df.csv")
+    preprocessor = load_from_s3(S3_BUCKET, f"{S3_KEY}/preprocessing/preprocessor.pkl")
+
+
+    tuning_metadata = tuning_data(train_path, test_path, preprocessor)
+
+    TUNING_METADATA_KEY = f"{S3_KEY}/artifacts/tuning_metadata.json"
+    s3.put_object(
+        Bucket=S3_BUCKET,
+        Key=TUNING_METADATA_KEY,
+        Body=json.dumps(tuning_metadata).encode("utf-8")
+    )
+

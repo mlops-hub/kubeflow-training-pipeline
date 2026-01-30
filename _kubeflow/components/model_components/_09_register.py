@@ -1,4 +1,4 @@
-from kfp.dsl import component, Input, Model, Dataset
+from kfp.dsl import component
 
 @component(
     base_image="sandy345/kubeflow-employee-attrition:latest",

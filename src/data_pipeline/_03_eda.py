@@ -6,6 +6,10 @@ import pandas as pd
 def eda_data(df: pd.DataFrame) -> pd.DataFrame:
     # Basic statistics
     print("Basic Statistics:")
+    print(df.head(5))
+    print("------")
+    print(f"Information: {df.info()}")
+    print("------")
     print(df.describe(include='all'))
 
     # Distribution of Age
@@ -39,21 +43,33 @@ def eda_data(df: pd.DataFrame) -> pd.DataFrame:
     plt.title('Correlation Heatmap')
     plt.show()
 
-    df.to_csv(EDA_PATH, index=False)
     return df
 
 
 if __name__ == "__main__":
-    from pathlib import Path
+    import os
+    import boto3
+    from io import BytesIO
+    from dotenv import load_dotenv
 
-    BASE_DIR = Path(__file__).resolve().parents[2]
-    DATASET_PATH = BASE_DIR / "datasets" / "data-pipeline"
-    VALIDATION_PATH = DATASET_PATH / "02_validation.csv"
-    EDA_PATH = DATASET_PATH / "03_eda_df.csv"
+    load_dotenv()
 
-    df = pd.read_csv(VALIDATION_PATH)
+    S3_BUCKET = os.environ.get("S3_BUCKET", "datasets")
+    S3_KEY = os.environ.get("S3_KEY", "raw")
+
+    s3 = boto3.client('s3')
+
+    input_key = f"{S3_KEY}/validation/validation.csv"
+    obj = s3.get_object(Bucket=S3_BUCKET, Key=input_key)
+    df = pd.read_csv(BytesIO(obj['Body'].read()))
 
     eda_df = eda_data(df)
-    
-    eda_df.to_csv(EDA_PATH, index=False)
 
+    if eda_df is not None:
+        output_key = f"{S3_KEY}/eda/eda.csv"
+        buffer = BytesIO()
+        eda_df.to_csv(buffer, index=False)
+        buffer.seek(0)
+        
+        s3.upload_fileobj(buffer, Bucket=S3_BUCKET, Key=output_key)
+        print(f"✅ Validated dataset uploaded to s3://{S3_BUCKET}/{output_key}")

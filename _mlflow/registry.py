@@ -154,7 +154,6 @@ class MLflowRegistry:
 
         print("\nModel registered successfully!")
         print(f"\nVersion: {version}")
-        print(f"\nStage: {register_model.current_stage}")
 
         return register_model
 
