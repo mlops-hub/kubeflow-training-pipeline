@@ -7,7 +7,7 @@ s3 = boto3.client('s3')
 
 def ingestion(bucket: str, input_key: str) -> pd.DataFrame:
     try:
-        obj = s3.get_object(Bucket=S3_BUCKET, Key=input_key)
+        obj = s3.get_object(Bucket=bucket, Key=input_key)
         df = pd.read_csv(obj['Body'])
 
         print(f"✅ Loaded dataset from s3://{bucket}/{input_key}")

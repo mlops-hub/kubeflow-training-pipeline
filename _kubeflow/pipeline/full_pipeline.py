@@ -36,7 +36,7 @@ def full_pipeline(
     # -----------------------------------------------------
     ingest = ingestion_component(
         bucket="ml-basics", 
-        input_key="employee-attrition/employee_attrition.csv"
+        key="employee-attrition/employee_attrition.csv"
     )
     validate = validation_component(
         input_data=ingest.outputs['output_data']
