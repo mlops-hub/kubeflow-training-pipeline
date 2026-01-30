@@ -11,8 +11,6 @@ def evaluation_component(
     experiment_name: str
 ):
     import os
-    import json
-    import pandas as pd
     from model_pipeline._09_evaluation import evaluate_data
 
     test_path = os.path.join(test_data.path, "test.csv")

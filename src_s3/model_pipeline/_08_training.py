@@ -18,9 +18,7 @@ def training_data(train_path: str, preprocessor_path: str, best_params_path: str
     X_train = df.drop(columns=['Attrition'])
     y_train = df['Attrition']
 
-    # load parameters
-    with open(best_params_path, 'r') as f:
-        params = json.load(f)
+    params = json.load(best_params_path)
 
     best_params = {
         key.replace("model__", ""): value
@@ -55,17 +53,34 @@ def training_data(train_path: str, preprocessor_path: str, best_params_path: str
 
 
 if __name__ == "__main__":
+    import boto3
+    import pandas as pd
+    import joblib
+    from io import BytesIO
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--train_path", required=True)
     parser.add_argument("--preprocessor_path", required=True)
     parser.add_argument("--best_params_path", required=True)
     args = parser.parse_args()
     
+    s3 = boto3.client('s3')
+
+    def load_from_s3(s3_uri):
+        bucket, key = s3_uri.replace("s3://", "").split("/", 1)
+        print('key: ', key)
+        obj = s3.get_object(Bucket=bucket, Key=key)
+        return BytesIO(obj['Body'].read())
+    
+    train_df = load_from_s3(args.train_path)
+    preprocessor = load_from_s3(args.preprocessor_path)
+    best_params = load_from_s3(args.best_params_path)
+
 
     training_data(
-        train_path=args.train_path,
-        preprocessor_path=args.preprocessor_path,
-        best_params_path=args.best_params_path,
+        train_path=train_df,
+        preprocessor_path=preprocessor,
+        best_params_path=best_params,
         tracking_uri="http://localhost:5000", 
         experiment_name="employee-attrition-v1", 
         artifact_name="employee-attrition-model"
@@ -74,7 +89,7 @@ if __name__ == "__main__":
 
 
 # run command
-# python -m src.model_pipeline._08_training --train_path datasets/data-pipeline/06_preprocess_train_df.csv --preprocessor_path artifacts/model_v1/preprocessor.pkl --best_params_path artifacts/model_v1/tuning_metadata.json
+# python -m src.model_pipeline._08_training --train_path s3://ml-basics/employee-attrition/preprocessing/train_df.csv --preprocessor_path s3://ml-basics/employee-attrition/preprocessing/preprocessor.pkl --best_params_path s3://ml-basics/employee-attrition/artifacts/tuning_metadata.json
 
 # model_path=args.model_path, 
 # feature_store_path=args.feature_store_path,

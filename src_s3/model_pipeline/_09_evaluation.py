@@ -70,14 +70,25 @@ def evaluate_data(test_path: str, tracking_uri: str, experiment_name: str):
 
 
 if __name__ == "__main__":
-    from pathlib import Path
+    import os
+    import boto3
+    from io import BytesIO
+    from dotenv import load_dotenv
 
-    BASE_DIR = Path(__file__).resolve().parents[2]
-    DATASET_PATH = BASE_DIR / "datasets" / "data-pipeline"
-    TEST_PATH = DATASET_PATH / "06_preprocess_test_df.csv"
+    load_dotenv()
+
+    S3_BUCKET = os.environ.get("S3_BUCKET", "datasets")
+    S3_KEY = os.environ.get("S3_KEY", "raw")
+
+    s3 = boto3.client('s3')
+
+    key = f"{S3_KEY}/preprocessing/test_df.csv"
+    obj = s3.get_object(Bucket=S3_BUCKET, Key=key)
+
+    test_df = BytesIO(obj['Body'].read())
 
     evaluate_data(
-        TEST_PATH,
+        test_df,
         tracking_uri="http://localhost:5000", 
         experiment_name="employee-attrition-v1", 
     )

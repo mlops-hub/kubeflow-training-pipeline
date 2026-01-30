@@ -11,7 +11,7 @@ def tuning_component(
     tuning_metadata: Output[Dataset],
 ):
     import os
-    import boto3
+    # import boto3
     import json
     from src.model_pipeline._07_tuning import tuning_data
 
@@ -27,12 +27,12 @@ def tuning_component(
         json.dump(tuning_metadata_output, f)
 
     # save in s3
-    s3 = boto3.client('s3')
-    s3.put_object(
-        Bucket="ml-basics",
-        Key="employee-attrition/artifacts/tuning_metadata.json",
-        Body=json.dumps(tuning_metadata).encode("utf-8")
-    )
+    # s3 = boto3.client('s3')
+    # s3.put_object(
+    #     Bucket="ml-basics",
+    #     Key="employee-attrition/artifacts/tuning_metadata.json",
+    #     Body=json.dumps(tuning_metadata).encode("utf-8")
+    # )
 
     print("Tuning completed successfully.")
 

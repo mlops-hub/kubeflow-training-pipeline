@@ -1,42 +1,28 @@
-import os
 import pandas as pd
-import boto3
-from io import BytesIO
 
-s3 = boto3.client('s3')
+def ingestion() -> pd.DataFrame:
+    df = pd.read_csv(RAW_DATA_PATH)
+    print(df.head(5))
+    print("------")
 
-def ingestion(bucket: str, input_key: str) -> pd.DataFrame:
-    try:
-        obj = s3.get_object(Bucket=bucket, Key=input_key)
-        df = pd.read_csv(obj['Body'])
+    print(f"Shape: {df.shape}")
+    print("------")
 
-        print(f"✅ Loaded dataset from s3://{bucket}/{input_key}")
-        print(f"➡️ Dataset shape: {df.shape}")
-
-        return df
-    
-    except Exception as e:
-        print(f"Error downloading file from S3: {e}")
-        return None
+    print(f"Information: {df.info()}")
+    print("------")
+    return df
 
 
 if __name__ == "__main__":
-    from dotenv import load_dotenv
+    import os
+    from pathlib import Path
 
-    load_dotenv()
+    BASE_DIR = Path(__file__).resolve().parents[2]
+    DATASET_PATH = BASE_DIR / "datasets"
+    RAW_DATA_PATH = DATASET_PATH / "employee_attrition.csv"
+    INGESTION_PATH = DATASET_PATH / "data-pipeline" / "01_ingestion.csv"
+    os.makedirs(INGESTION_PATH.parent, exist_ok=True)
 
-    S3_BUCKET = os.environ.get("S3_BUCKET", "datasets")
-    S3_KEY = os.environ.get("S3_KEY", "raw")
-    RAW_DATASET = os.environ.get("RAW_DATASET", "employee_attrition.csv")
+    df = ingestion()
 
-    input_key = f"{S3_KEY}/{RAW_DATASET}"
-    output_key = f"{S3_KEY}/ingestion/ingestion.csv"
-
-    df = ingestion(S3_BUCKET, input_key)
-
-    buffer = BytesIO()
-    df.to_csv(buffer, index=False)
-    buffer.seek(0)
-
-    s3.upload_fileobj(buffer, Bucket=S3_BUCKET, Key=output_key)
-
+    df.to_csv(INGESTION_PATH, index=False)

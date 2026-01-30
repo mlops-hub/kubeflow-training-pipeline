@@ -51,13 +51,9 @@ def promote_to_production(
 
 
 if __name__ == "__main__":
-
-    tracking_uri = "http://localhost:5000"
-    experiment_name = "employee-attrition-v1"
-
     registered_model, metrics = register_model_to_mlflow(
-        tracking_uri=tracking_uri,
-        experiment_name=experiment_name,
+        tracking_uri="http://localhost:5000",
+        experiment_name="employee-attrition-v1",
         registry_name="register-employee-attrition-model"
     )
     
@@ -65,8 +61,8 @@ if __name__ == "__main__":
         metric=metrics['recall'],
         model_name=registered_model.name,
         version=registered_model.version,
-        tracking_uri=tracking_uri,
-        experiment_name=experiment_name,
+        tracking_uri="http://localhost:5000",
+        experiment_name="employee-attrition-v1",
         recall_threshold=0.6,
     )
 

@@ -2,12 +2,14 @@
 # | -------------------- | -------------------------------------- | ------------------------------ |
 # | **Years at Company** | Years in the *current role / position* | Usually smaller, role-specific |
 # | **Company Tenure**   | Total years employed at the company    | Usually ≥ Years at Company     |
-
+from typing import Union
 import pandas as pd
+from io import BytesIO
 
 
-def feature_data(df: pd.DataFrame) -> pd.DataFrame:
-    df_fe = df.copy()
+def feature_data(df_path: Union[str, BytesIO, bytes]) -> pd.DataFrame:
+    
+    df_fe = pd.read_csv(df_path)
 
     # Encoding
     # ------------------------------------
@@ -83,26 +85,40 @@ def feature_data(df: pd.DataFrame) -> pd.DataFrame:
     # 5. Long Term Stagnation
     df_fe["LongTenureLowRoleRisk"] = ( (df_fe["Company Tenure"] > 5) & (df_fe["Job Level"] <= 2) ).astype("Int64")
 
-
     # drop unnecessary columns
     df_fe = df_fe.drop(columns=['Employee ID', 'Job Role', 'Distance from Home', 'Marital Status', 'Gender', 'dataset_type'])
 
-    print(df_fe.tail(10))
+    print(df_fe.tail(5))
 
     return df_fe
 
 
+
 if __name__ == "__main__":
-    from pathlib import Path
+    import os
+    import boto3
+    from dotenv import load_dotenv
 
-    BASE_DIR = Path(__file__).resolve().parents[2]
-    DATASET_PATH = BASE_DIR / "datasets" / "data-pipeline"
-    CLEANED_PATH = DATASET_PATH / "04_cleaned_df.csv"
-    FEATURED_PATH = DATASET_PATH / "05_feature_engg_df.csv"
+    load_dotenv()
 
+    S3_BUCKET = os.environ.get("S3_BUCKET", "datasets")
+    S3_KEY = os.environ.get("S3_KEY", "raw")
 
-    df = pd.read_csv(CLEANED_PATH)
+    s3 = boto3.client('s3')
+
+    input_key = f"{S3_KEY}/cleaned/cleaned.csv"
+    obj = s3.get_object(Bucket=S3_BUCKET, Key=input_key)
+    df = BytesIO(obj['Body'].read())
 
     feature_df = feature_data(df)
 
-    feature_df.to_csv(FEATURED_PATH, index=False)
+    if feature_df is not None:
+        output_key = f"{S3_KEY}/feature_engg/feature_engg.csv"
+        buffer = BytesIO()
+        feature_df.to_csv(buffer, index=False)
+        buffer.seek(0)
+        
+        s3.upload_fileobj(buffer, Bucket=S3_BUCKET, Key=output_key)
+        print(f"✅ Validated dataset uploaded to s3://{S3_BUCKET}/{output_key}")
+
+
