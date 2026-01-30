@@ -1,6 +1,8 @@
 import pandas as pd
 
-def clean_data(df: pd.DataFrame) -> pd.DataFrame:
+def clean_data(df_path: str) -> pd.DataFrame:
+    df = pd.read_csv(df_path)
+
     print("--- Find duplicates ---")
     df_duplicate = df.duplicated()
     print(f"Number of duplicate rows: {df_duplicate.sum()}")
@@ -19,8 +21,6 @@ if __name__ == "__main__":
     EDA_PATH = DATASET_PATH / "03_eda_df.csv"
     CLEANED_PATH = DATASET_PATH / "04_cleaned_df.csv"
 
-    df = pd.read_csv(EDA_PATH)
-
-    cleaned_df = clean_data(df)
+    cleaned_df = clean_data(EDA_PATH)
 
     cleaned_df.to_csv(CLEANED_PATH, index=False)

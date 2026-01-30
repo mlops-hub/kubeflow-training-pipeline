@@ -3,7 +3,9 @@ import seaborn as sns
 import pandas as pd
 
 
-def eda_data(df: pd.DataFrame) -> pd.DataFrame:
+def eda_data(df_path: str) -> pd.DataFrame:
+    df = pd.read_csv(df_path)
+
     # Basic statistics
     print("Basic Statistics:")
     print(df.describe(include='all'))
@@ -51,9 +53,7 @@ if __name__ == "__main__":
     VALIDATION_PATH = DATASET_PATH / "02_validation.csv"
     EDA_PATH = DATASET_PATH / "03_eda_df.csv"
 
-    df = pd.read_csv(VALIDATION_PATH)
-
-    eda_df = eda_data(df)
+    eda_df = eda_data(VALIDATION_PATH)
     
     eda_df.to_csv(EDA_PATH, index=False)
 

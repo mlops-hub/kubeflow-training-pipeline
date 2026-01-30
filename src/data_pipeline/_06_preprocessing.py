@@ -3,8 +3,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
-def preprocess_data(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, StandardScaler]:
-    df_pp = df.copy()
+def preprocess_data(df_path: str) -> tuple[pd.DataFrame, pd.DataFrame, StandardScaler]:
+    df_pp = pd.read_csv(df_path)
 
     # Separate features and target
     X = df_pp.drop(columns=['Attrition'])
@@ -61,8 +61,7 @@ if __name__ == "__main__":
     
     PREPROCESSOR_PATH = ARTIFACTS_PATH / "preprocessor.pkl"
 
-    df = pd.read_csv(FEATURED_PATH)
-    train_df, test_df, preprocesor = preprocess_data(df)
+    train_df, test_df, preprocesor = preprocess_data(FEATURED_PATH)
 
     # Save preprocessed data
     joblib.dump(preprocesor, PREPROCESSOR_PATH)

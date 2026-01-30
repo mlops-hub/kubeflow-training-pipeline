@@ -30,8 +30,10 @@ employee_schema = pa.DataFrameSchema(
     coerce=True
 )
 
-def validate_data(df: pd.DataFrame) -> pd.DataFrame:
+def validate_data(df_path: str) -> pd.DataFrame:
     try:
+        df = pd.read_csv(df_path)
+
         validate_df = employee_schema(df, lazy=True)
         print("Data validation successful.")
         return validate_df
@@ -49,9 +51,8 @@ if __name__ == "__main__":
     INGESTION_PATH = DATASET_PATH / "01_ingestion.csv"
     VALIDATION_PATH = DATASET_PATH / "02_validation.csv"
 
-    df = pd.read_csv(INGESTION_PATH)
-
-    validated_df = validate_data(df)
+    
+    validated_df = validate_data(INGESTION_PATH)
 
     validated_df.to_csv(VALIDATION_PATH, index=False)
 

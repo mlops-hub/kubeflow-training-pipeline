@@ -6,8 +6,9 @@
 import pandas as pd
 
 
-def feature_data(df: pd.DataFrame) -> pd.DataFrame:
-    df_fe = df.copy()
+def feature_data(df_path: str) -> pd.DataFrame:
+
+    df_fe = pd.read_csv(df_path)
 
     # Encoding
     # ------------------------------------
@@ -100,9 +101,6 @@ if __name__ == "__main__":
     CLEANED_PATH = DATASET_PATH / "04_cleaned_df.csv"
     FEATURED_PATH = DATASET_PATH / "05_feature_engg_df.csv"
 
-
-    df = pd.read_csv(CLEANED_PATH)
-
-    feature_df = feature_data(df)
+    feature_df = feature_data(CLEANED_PATH)
 
     feature_df.to_csv(FEATURED_PATH, index=False)
