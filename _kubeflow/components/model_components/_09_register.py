@@ -9,7 +9,7 @@ def register_model_component(
     registry_name: str, 
     recall_threshold: float
 ):
-    from model_pipeline._10_registry import register_model_to_mlflow, promote_to_production
+    from src.model_pipeline._10_registry import register_model_to_mlflow, promote_to_production
 
     registered_model, metrics = register_model_to_mlflow(    
         tracking_uri=tracking_uri, 

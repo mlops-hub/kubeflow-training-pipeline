@@ -1,4 +1,4 @@
-from kfp.dsl import component, Dataset, Input, Output, Model
+from kfp.dsl import component, Dataset, Input, OutputPath, Model
 
 @component(
     base_image="sandy345/kubeflow-employee-attrition:latest",
@@ -13,7 +13,7 @@ def trainer_model_component(
     train_path: Input[Dataset],
     preprocessor_model: Input[Model],
     tuning_metadata: Input[Dataset],
-    job_output: Output[str]
+    job_output: OutputPath(str),
 ):
     import os
     from kubernetes import client, config
@@ -37,7 +37,7 @@ def trainer_model_component(
     ]
 
     env = [
-        {"name": "MLFLOW_TRACKING_URI", "value": "http://mlflow.kubeflow.svc.cluster.local:80"},
+        {"name": "MLFLOW_TRACKING_URI", "value": "http://206.189.133.216:32039"},
         {"name": "MLFLOW_EXPERIMENT_NAME", "value": "employee-attrition-v1"},
     ]
 
@@ -52,7 +52,7 @@ def trainer_model_component(
             "runtimeRef": {
                 "name": "torch-distributed"
             },
-            "trainSpec": {
+            "trainer": {
                 "image": image,
                 "command": command,
                 "args": arguments,
@@ -83,5 +83,5 @@ def trainer_model_component(
 
     print(f"✅ Trainer Job {job_name} created in namespace {namespace}")
 
-    with open(job_output.path, 'w') as f:
+    with open(job_output, 'w') as f:
         f.write(job_name)

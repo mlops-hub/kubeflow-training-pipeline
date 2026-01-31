@@ -1,5 +1,6 @@
 from kfp import dsl
 from kfp.compiler import Compiler
+import uuid
 
 # data
 from _kubeflow.components.data_components._01_ingestion import ingestion_component
@@ -27,7 +28,7 @@ def full_pipeline(
     trainer_image: str = "sandy345/kubeflow-employee-attrition:latest",
     cpu: str = "500m",
     memory: str = "1Gi",
-    tracking_uri: str = "http://mlflow.kubeflow.svc.cluster.local:80",
+    tracking_uri: str = "http://206.189.133.216:32039",
     experiment_name: str = "employee-attrition-v1",
     registry_name: str = "register-employee-attrition-model",
     recall_threshold: float = 0.70,
@@ -69,7 +70,7 @@ def full_pipeline(
 
     # trainer job - kubeflow trainer
     job = trainer_model_component(
-        job_name="attrition-trainer-job",
+        job_name=f"attrition-trainer-job-{uuid.uuid4().hex[:4]}",
         namespace=namespace,
         image=trainer_image,
         cpu=cpu,
@@ -79,23 +80,23 @@ def full_pipeline(
         tuning_metadata=tuning.outputs['tuning_metadata']
     )
 
-    wait = wait_for_training(
-        job_name=job.outputs['job_output'],
-        namespace=namespace
-    )
+    # wait = wait_for_training(
+    #     job_name=job.outputs['job_output'],
+    #     namespace=namespace
+    # )
 
-    eval_step = evaluation_component(
+    eval = evaluation_component(
         test_data=preprocess.outputs['test_data'],
         tracking_uri=tracking_uri,
         experiment_name=experiment_name
-    ).after(wait)
+    ).after(job)
 
     register_model_component(
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
         registry_name=registry_name,
         recall_threshold=recall_threshold,
-    ).after(eval_step)
+    ).after(eval)
 
 
 # Compile pipeline 
