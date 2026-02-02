@@ -1,10 +1,14 @@
 import argparse
 import json
+import os
 import joblib
 import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
 from _mlflow.registry import MLflowRegistry
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def training_data(train_path: str, preprocessor_path: str, best_params_path: str, tracking_uri: str, experiment_name: str, artifact_name: str):
@@ -66,8 +70,8 @@ if __name__ == "__main__":
         train_path=args.train_path,
         preprocessor_path=args.preprocessor_path,
         best_params_path=args.best_params_path,
-        tracking_uri="http://localhost:5000", 
-        experiment_name="employee-attrition-v1", 
+        tracking_uri=os.environ["MLFLOW_TRACKING_URI"], 
+        experiment_name=os.environ["MLFLOW_EXPERIMENT_NAME"], 
         artifact_name="employee-attrition-model"
     )
 

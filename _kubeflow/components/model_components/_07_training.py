@@ -37,8 +37,8 @@ def trainer_model_component(
     ]
 
     env = [
-        {"name": "MLFLOW_TRACKING_URI", "value": "http://206.189.133.216:32039"},
-        {"name": "MLFLOW_EXPERIMENT_NAME", "value": "employee-attrition-v1"},
+        {"name": "MLFLOW_TRACKING_URI", "value": "http://mlflow.mlflow:80".strip()},
+        {"name": "MLFLOW_EXPERIMENT_NAME", "value": "employee-attrition-v1".strip()},
     ]
 
     trainjob_manifest = {

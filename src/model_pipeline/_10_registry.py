@@ -1,12 +1,17 @@
+import os
 from _mlflow.registry import MLflowRegistry
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def register_model_to_mlflow(
-    tracking_uri: str,
-    experiment_name: str,
     registry_name: str
 ) -> object:
-    
+
+    tracking_uri=os.environ["MLFLOW_TRACKING_URI"]
+    experiment_name=os.environ["MLFLOW_EXPERIMENT_NAME"]
+        
     registry = MLflowRegistry(
         tracking_uri=tracking_uri,
         experiment_name=experiment_name
@@ -29,10 +34,11 @@ def promote_to_production(
     metric: float,
     model_name: str,
     version: int,
-    tracking_uri: str,
-    experiment_name: str,
     recall_threshold: float = 0.70,
 ) -> str:
+    
+    tracking_uri=os.environ["MLFLOW_TRACKING_URI"]
+    experiment_name=os.environ["MLFLOW_EXPERIMENT_NAME"]
 
     registry = MLflowRegistry(
         tracking_uri=tracking_uri,
@@ -51,13 +57,7 @@ def promote_to_production(
 
 
 if __name__ == "__main__":
-
-    tracking_uri = "http://localhost:5000"
-    experiment_name = "employee-attrition-v1"
-
     registered_model, metrics = register_model_to_mlflow(
-        tracking_uri=tracking_uri,
-        experiment_name=experiment_name,
         registry_name="register-employee-attrition-model"
     )
     
@@ -65,8 +65,6 @@ if __name__ == "__main__":
         metric=metrics['recall'],
         model_name=registered_model.name,
         version=registered_model.version,
-        tracking_uri=tracking_uri,
-        experiment_name=experiment_name,
         recall_threshold=0.6,
     )
 

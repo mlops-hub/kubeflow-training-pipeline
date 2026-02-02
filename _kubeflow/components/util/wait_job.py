@@ -15,7 +15,7 @@ def wait_for_training(job_name: str, namespace: str):
     poll_interval = 30
     elapsed = 0
 
-    while elapsed < 1800:
+    while elapsed < 360:
         job = api.get_namespaced_custom_object(
             group="trainer.kubeflow.org",
             version="v1alpha1",
@@ -24,30 +24,33 @@ def wait_for_training(job_name: str, namespace: str):
             name=job_name,
         )
 
+        print('job: ', job, flush=True)
+
         status = job.get("status", {})
-        print('status: ', status)
+        print('status: ', status, flush=True)
 
         conditions = status.get("conditions", [])
         print('conditions: ', conditions)
 
-        for condition in conditions:
-            cond_type = condition.get("type", "")
-            cond_status = condition.get("status", "")
+        if not conditions:
+            print(f"[{job_name}] Waiting... ({elapsed}s elapsed)", flush=True)
+        else:
+            for condition in conditions:
+                cond_type = condition.get("type", "")
+                cond_status = condition.get("status", "")
+                cond_message = condition.get("message", "")
 
-            if cond_type == "Succeeded" and cond_status == "True":
-                print(f"TrainJob '{job_name}' succeeded!")
-                break
+                if cond_type == "Succeeded" and cond_status == "True":
+                    print(f"TrainJob [{job_name}] ✅ Succeeded", flush=True)
+                    return
 
-            elif cond_type == "Failed" and cond_status == "True":
-                msg = condition.get("message", "Unknown error")
-                raise Exception(f"TrainJob '{job_name}' failed: {msg}")
+                elif cond_type == "Failed" and cond_status == "True":
+                    raise Exception(f"TrainJob [{job_name}] failed: {cond_message}")
 
-            elif cond_type == "Complete" and cond_status == "True":
-                print(f"TrainJob '{job_name}' completed!")
-                break
+                elif cond_type == "Complete" and cond_status == "True":
+                    print(f"TrainJob [{job_name}] completed: {cond_message}")
+                    return
             
-        print(f"Status: Running... ({elapsed}s elapsed)")
-                
         time.sleep(poll_interval)
         elapsed += poll_interval
 

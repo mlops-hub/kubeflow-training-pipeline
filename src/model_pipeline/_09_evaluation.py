@@ -1,11 +1,16 @@
 import pandas as pd
 import numpy as np
+import os
 import matplotlib.pyplot as plt
 from _mlflow.registry import MLflowRegistry
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, precision_score, recall_score, f1_score, roc_auc_score
+from dotenv import load_dotenv
 
+load_dotenv()
 
-def evaluate_data(test_path: str, tracking_uri: str, experiment_name: str):
+def evaluate_data(test_path: str):
+    tracking_uri=os.environ["MLFLOW_TRACKING_URI"]
+    experiment_name=os.environ["MLFLOW_EXPERIMENT_NAME"]
 
     registry = MLflowRegistry(
         tracking_uri=tracking_uri,
@@ -76,8 +81,4 @@ if __name__ == "__main__":
     DATASET_PATH = BASE_DIR / "datasets" / "data-pipeline"
     TEST_PATH = DATASET_PATH / "06_preprocess_test_df.csv"
 
-    evaluate_data(
-        TEST_PATH,
-        tracking_uri="http://localhost:5000", 
-        experiment_name="employee-attrition-v1", 
-    )
+    evaluate_data(TEST_PATH)

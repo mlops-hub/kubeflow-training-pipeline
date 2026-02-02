@@ -28,7 +28,7 @@ def full_pipeline(
     trainer_image: str = "sandy345/kubeflow-employee-attrition:latest",
     cpu: str = "500m",
     memory: str = "1Gi",
-    tracking_uri: str = "http://206.189.133.216:32039",
+    tracking_uri: str = "http://mlflow.mlflow:80",
     experiment_name: str = "employee-attrition-v1",
     registry_name: str = "register-employee-attrition-model",
     recall_threshold: float = 0.70,
@@ -80,23 +80,23 @@ def full_pipeline(
         tuning_metadata=tuning.outputs['tuning_metadata']
     )
 
-    # wait = wait_for_training(
-    #     job_name=job.outputs['job_output'],
-    #     namespace=namespace
-    # )
+    wait = wait_for_training(
+        job_name=job.outputs['job_output'],
+        namespace=namespace
+    )
 
     eval = evaluation_component(
         test_data=preprocess.outputs['test_data'],
-        tracking_uri=tracking_uri,
-        experiment_name=experiment_name
-    ).after(job)
+    ).after(wait)
+    eval.set_env_variable("MLFLOW_TRACKING_URI", str(tracking_uri))
+    eval.set_env_variable("MLFLOW_EXPERIMENT_NAME", str(experiment_name))
 
-    register_model_component(
-        tracking_uri=tracking_uri,
-        experiment_name=experiment_name,
+    reg = register_model_component(
         registry_name=registry_name,
         recall_threshold=recall_threshold,
     ).after(eval)
+    reg.set_env_variable("MLFLOW_TRACKING_URI", str(tracking_uri))
+    reg.set_env_variable("MLFLOW_EXPERIMENT_NAME", str(experiment_name))
 
 
 # Compile pipeline 
@@ -105,6 +105,3 @@ def full_pipeline(
 #         pipeline_func=full_pipeline, 
 #         package_path="full_pipeline.yaml" 
 #     )
-
-# model_path="/outputs/model.pkl",
-# feature_store_path="/outputs/features.pkl"
