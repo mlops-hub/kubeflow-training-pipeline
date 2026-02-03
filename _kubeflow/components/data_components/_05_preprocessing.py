@@ -2,7 +2,7 @@ from kfp import dsl
 from kfp.dsl import component, Input, Output, Dataset, Model
 
 @component(
-    base_image="sandy345/kubeflow-employee-attrition:latest", 
+    base_image="aswinvj/kubeflow:latest", 
 )
 def preprocessed_component(
     input_data: Input[Dataset],

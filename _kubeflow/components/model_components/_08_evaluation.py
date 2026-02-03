@@ -3,7 +3,7 @@ from kfp.dsl import component, Input, Dataset
 
 
 @component(
-    base_image="sandy345/kubeflow-employee-attrition:latest", 
+    base_image="aswinvj/kubeflow:latest", 
 )
 def evaluation_component(
     test_data: Input[Dataset],

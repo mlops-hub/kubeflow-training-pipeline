@@ -1,7 +1,7 @@
 from kfp.dsl import component
 
 @component(
-    base_image="sandy345/kubeflow-employee-attrition:latest",
+    base_image="aswinvj/kubeflow:latest",
 )
 def register_model_component(
     registry_name: str, 

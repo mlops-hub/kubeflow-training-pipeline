@@ -1,7 +1,7 @@
 from kfp.dsl import component, Output, Dataset
 
 @component(
-    base_image="sandy345/kubeflow-employee-attrition:latest"
+    base_image="aswinvj/kubeflow:latest"
 )
 def ingestion_component(
     output_data: Output[Dataset]
