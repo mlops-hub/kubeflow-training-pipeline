@@ -45,10 +45,10 @@ def wait_for_training(job_name: str, namespace: str):
                     return
 
                 elif cond_type == "Failed" and cond_status == "True":
-                    raise Exception(f"TrainJob [{job_name}] failed: {cond_message}")
+                    raise Exception(f"TrainJob [{job_name}] ⚠️ failed: {cond_message}")
 
                 elif cond_type == "Complete" and cond_status == "True":
-                    print(f"TrainJob [{job_name}] completed: {cond_message}")
+                    print(f"TrainJob [{job_name}] ✅ completed: {cond_message}")
                     return
             
         time.sleep(poll_interval)

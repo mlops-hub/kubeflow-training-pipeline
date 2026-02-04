@@ -17,6 +17,11 @@ class MLflowRegistry:
     def start_run(self, run_name: str = None, run_id: str = None):
         return mlflow.start_run(run_name=run_name, run_id=run_id)
 
+    # get run_id
+    def get_run_id(self):
+        run_id = mlflow.active_run().info.run_id
+        return run_id
+
 
     def log_model(
         self, 
@@ -54,7 +59,27 @@ class MLflowRegistry:
         return True
     
 
-    def get_model_uri_from_mlflow(self):
+    def log_metrics_mlflow(self, metrics):
+        mlflow.log_metrics(metrics)
+        return True
+    
+
+    def log_dict_mlflow(self, dict_values, artifact_file):
+        mlflow.log_dict(
+            dict_values,
+            artifact_file=artifact_file
+        )
+        return True
+
+
+    def load_model(self, run_id: str, artifact_name: str):
+        model_uri = f"runs:/{run_id}/{artifact_name}"
+        print(f"Loading model from: {model_uri}")
+
+        return mlflow.sklearn.load_model(model_uri)
+    
+    # ----- not need
+    def get_metadata_from_mlflow(self):
         runs = mlflow.search_runs(
             filter_string="tags.artifact_name = 'employee-attrition-model'",
             order_by=["start_time DESC"],
@@ -64,7 +89,7 @@ class MLflowRegistry:
 
         local_path = mlflow.artifacts.download_artifacts(
             run_id=run_id,
-            artifact_path="mlflow_metadata.json"
+            artifact_path="tuning_metadata.json"
         )
 
         with open(local_path) as f:
@@ -73,31 +98,10 @@ class MLflowRegistry:
         return metadata
 
 
-    def get_metric_from_mlfow(self):
-        runs = mlflow.search_runs(
-            filter_string="tags.artifact_name = 'employee-attrition-model'",
-            order_by=["start_time DESC"],
-            max_results=1,
-        )
-        run_id = runs.iloc[0].run_id
-
+    def get_metric_from_mlfow(self, run_id):
         run = self.client.get_run(run_id)
         metrics = run.data.metrics
-
         return metrics
-
-    
-    def log_evaluation_metrics(self, metrics):
-        mlflow.log_metrics(metrics)
-        return True
-
-
-    def load_model(self, metadata: dict = None, model_uri: str = None):
-        if metadata:
-            model_uri = f"runs:/{metadata['run_id']}/{metadata['artifact_name']}"
-        print('model-uri: ', model_uri)
-        model = mlflow.sklearn.load_model(model_uri)
-        return model
 
 
     def load_features_from_mlflow(self):
@@ -119,9 +123,9 @@ class MLflowRegistry:
         return features['raw_features']
 
 
-
-    def register_model(self, metadata, registry_name):
-        model_uri = f"runs:/{metadata['run_id']}/{metadata['artifact_name']}"
+    def register_model(self, run_id, artifact_name, registry_name):
+        # model_uri = f"runs:/{metadata['run_id']}/{metadata['artifact_name']}"
+        model_uri = f"runs:/{run_id}/{artifact_name}"
         print('model-uri: ', model_uri)
 
         register_model = mlflow.register_model(
@@ -135,7 +139,7 @@ class MLflowRegistry:
             name=register_model.name,
             version=version,
             key="source_run_id",
-            value=metadata['run_id']
+            value=run_id
         )
 
         self.client.set_model_version_tag(

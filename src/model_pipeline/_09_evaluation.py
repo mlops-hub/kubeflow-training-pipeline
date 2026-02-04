@@ -8,22 +8,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-def evaluate_data(test_path: str):
-    tracking_uri=os.environ["MLFLOW_TRACKING_URI"]
-    experiment_name=os.environ["MLFLOW_EXPERIMENT_NAME"]
+def evaluate_data(test_path: str, tracking_uri: str, experiment_name: str, artifact_name: str, mlflow_run_id: str):
 
     registry = MLflowRegistry(
         tracking_uri=tracking_uri,
         experiment_name=experiment_name
     )
 
-    metadata = registry.get_model_uri_from_mlflow()
-    print('metadata: ', metadata)
-
-    with registry.start_run(run_id=metadata['run_id']):
-
+    with registry.start_run(run_id=run_id):
         # load model form MLflow
-        model = registry.load_model(metadata=metadata)
+        model = registry.load_model(run_id=mlflow_run_id, artifact_name=artifact_name)
 
         df_test = pd.read_csv(test_path)
         X_test = df_test.drop(columns=['Attrition'])
@@ -43,7 +37,8 @@ def evaluate_data(test_path: str):
 
         print('metrics: ', metrics)
 
-        registry.log_evaluation_metrics(metrics)
+        registry.log_metrics_mlflow(metrics)
+
 
     conf_matrix = confusion_matrix(y_test, y_pred)
     class_report = classification_report(y_test, y_pred)
@@ -61,7 +56,7 @@ def evaluate_data(test_path: str):
         'Coefficient': coef,
         'Abs_Coefficient': np.abs(coef)
     }).sort_values(by='Abs_Coefficient', ascending=False)
-    print(coef_df)
+    # print(coef_df)
 
     plt.figure(figsize=(10,6))
     plt.barh(coef_df['Feature'], coef_df['Coefficient'])
@@ -81,4 +76,16 @@ if __name__ == "__main__":
     DATASET_PATH = BASE_DIR / "datasets" / "data-pipeline"
     TEST_PATH = DATASET_PATH / "06_preprocess_test_df.csv"
 
-    evaluate_data(TEST_PATH)
+    ARTIFACTS_PATH = BASE_DIR / "artifacts" / "model_v1"
+    MLFLOW_METADATA = ARTIFACTS_PATH / "mlflow_metadata.txt"
+
+    with open(MLFLOW_METADATA, 'r') as f:
+        run_id = f.read().strip()
+
+    evaluate_data(
+        test_path=TEST_PATH, 
+        tracking_uri=os.environ["MLFLOW_TRACKING_URI"],
+        experiment_name=os.environ["MLFLOW_EXPERIMENT_NAME"],
+        artifact_name = os.environ["MLFLOW_MODEL_NAME"],
+        mlflow_run_id=run_id
+    )

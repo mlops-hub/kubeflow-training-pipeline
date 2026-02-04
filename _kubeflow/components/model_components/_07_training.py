@@ -1,5 +1,5 @@
 from kfp import dsl
-from kfp.dsl import Input, Artifact, OutputPath
+from kfp.dsl import Input, Artifact, InputPath, OutputPath
 from kubernetes import client as k8s_client
 from kubernetes.client import V1EnvVar, V1EnvVarSource, V1SecretKeySelector
 
@@ -17,7 +17,11 @@ def trainer_model_component(
     train_path: Input[Artifact],
     preprocessor_model: Input[Artifact],
     tuning_metadata: Input[Artifact],
+    mlflow_metadata: str,
     job_output: OutputPath(str),
+    tracking_uri: str,
+    experiment_name: str,
+    artifact_name: str,
 ):
     """Creates a Kubeflow TrainJob for model training with MinIO access."""
     
@@ -51,6 +55,7 @@ def trainer_model_component(
                     "--train_path", train_path.uri,
                     "--preprocessor_path", preprocessor_model.uri,
                     "--best_params_path", tuning_metadata.uri,
+                    "--mlflow_run_id", mlflow_metadata,
                 ],
                 "numNodes": 1,
                 "resourcesPerNode": {
@@ -65,8 +70,9 @@ def trainer_model_component(
                 },
                 "env": [
                     # MLflow settings
-                    {"name": "MLFLOW_TRACKING_URI", "value": "http://mlflow.mlflow:80"},
-                    {"name": "MLFLOW_EXPERIMENT_NAME", "value": "employee-attrition-v1"},
+                    {"name": "MLFLOW_TRACKING_URI", "value": str(tracking_uri)},
+                    {"name": "MLFLOW_EXPERIMENT_NAME", "value": str(experiment_name)},
+                    {"name": "MLFLOW_MODEL_NAME", "value": str(artifact_name)},
                     # MinIO settings
                     {"name": "MINIO_ENDPOINT", "value": "http://minio-service.kubeflow:9000"},
                     # MinIO credentials from secret

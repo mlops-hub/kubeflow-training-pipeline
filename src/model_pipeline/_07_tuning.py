@@ -2,11 +2,16 @@ import pandas as pd
 import joblib
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import GridSearchCV, StratifiedKFold, cross_val_score
+from sklearn.model_selection import GridSearchCV, StratifiedKFold
 from sklearn.metrics import accuracy_score, recall_score
+from _mlflow.registry import MLflowRegistry
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
-def tuning_data(train_path: str, test_path: str, preprocessor_path: str) -> dict:
+def tuning_data(train_path: str, test_path: str, preprocessor_path: str, tracking_uri: str, experiment_name: str) -> dict:
     df_train = pd.read_csv(train_path)
     df_test = pd.read_csv(test_path)
 
@@ -18,7 +23,6 @@ def tuning_data(train_path: str, test_path: str, preprocessor_path: str) -> dict
 
     # load preprocessor
     preprocessor = joblib.load(preprocessor_path)
-
 
     pipeline = Pipeline([
         ("preprocessor", preprocessor),
@@ -62,20 +66,33 @@ def tuning_data(train_path: str, test_path: str, preprocessor_path: str) -> dict
         "test_score": tuned_model.score(X_test, y_test)
     }        
 
+    # log in mlflow
+    registry = MLflowRegistry(
+        tracking_uri=tracking_uri,
+        experiment_name=experiment_name
+    )
 
-    overall_parameters = {
-        **best_parameters,
-        **metrics,
-    }
+    with registry.start_run(run_name="model-training-run"):
+        mlflow_run_id = registry.get_run_id()
 
-    print('parameters: ', overall_parameters)
+        overall_parameters = {
+            **best_parameters,
+            **metrics,
+        }
 
-    return overall_parameters
+        registry.log_dict_mlflow(
+            grid.cv_results_,
+            artifact_file="grid_search_results.json"
+        )
+
+        print("Logged tuning values in MLflow!")
+        
+
+    return mlflow_run_id, overall_parameters
 
 
 
 if __name__ == "__main__":
-    import os
     from pathlib import Path
     import json
 
@@ -87,8 +104,18 @@ if __name__ == "__main__":
     ARTIFACTS_PATH = BASE_DIR / "artifacts" / "model_v1"
     PREPROCESSOR_PATH = ARTIFACTS_PATH / "preprocessor.pkl"
     TUNING_METADATA = ARTIFACTS_PATH / "tuning_metadata.json"
+    MLFLOW_METADATA = ARTIFACTS_PATH / "mlflow_metadata.txt"  
 
-    overall_parameters = tuning_data(TRAIN_PATH, TEST_PATH, PREPROCESSOR_PATH)
+    run_id, overall_parameters = tuning_data(
+        train_path=TRAIN_PATH, 
+        test_path=TEST_PATH, 
+        preprocess_path=PREPROCESSOR_PATH,
+        tracking_uri = os.environ["MLFLOW_TRACKING_URI"],
+        experiment_name = os.environ["MLFLOW_EXPERIMENT_NAME"]
+    )
 
     with open(TUNING_METADATA, 'w') as f:
         json.dump(overall_parameters, f)
+
+    with open(MLFLOW_METADATA, "w") as f:
+        f.write(run_id)

@@ -25,11 +25,12 @@ from _kubeflow.components.util.wait_job import wait_for_training
 )
 def full_pipeline(
     namespace: str = "kubeflow",
-    trainer_image: str = "aswinvj/kubeflow:latest",
+    trainer_image: str = "sandy345/kubeflow-employee-attrition",
     cpu: str = "200m",
     memory: str = "512Mi",
     tracking_uri: str = "http://mlflow.mlflow:80",
     experiment_name: str = "employee-attrition-v1",
+    artifact_name: str = "employee-attrition-model",
     registry_name: str = "register-employee-attrition-model",
     recall_threshold: float = 0.70,
 ):
@@ -63,9 +64,11 @@ def full_pipeline(
     tuning = tuning_component(
         train_data=preprocess.outputs['train_data'],
         test_data=preprocess.outputs['test_data'],
-        preprocessor_model=preprocess.outputs['preprocessor_model']
+        preprocessor_model=preprocess.outputs['preprocessor_model'],
+        tracking_uri=tracking_uri,
+        experiment_name=experiment_name,
     )
-    # tune outputs: tuning_metadata
+    # tune outputs: tuning_metadata, mlflow_metadata [run_id]
 
 
     # trainer job - kubeflow trainer
@@ -77,7 +80,11 @@ def full_pipeline(
         memory=memory,
         train_path=preprocess.outputs['train_data'],
         preprocessor_model=preprocess.outputs['preprocessor_model'],
-        tuning_metadata=tuning.outputs['tuning_metadata']
+        tuning_metadata=tuning.outputs['tuning_metadata'],
+        mlflow_metadata=tuning.outputs["mlflow_metadata"],
+        tracking_uri=tracking_uri,
+        experiment_name=experiment_name,
+        artifact_name=artifact_name,
     )
 
     wait = wait_for_training(
@@ -87,16 +94,20 @@ def full_pipeline(
 
     eval = evaluation_component(
         test_data=preprocess.outputs['test_data'],
+        tracking_uri=tracking_uri,
+        experiment_name=experiment_name,
+        artifact_name=artifact_name,
+        mlflow_metadata=tuning.outputs["mlflow_metadata"]
     ).after(wait)
-    eval.set_env_variable("MLFLOW_TRACKING_URI", str(tracking_uri))
-    eval.set_env_variable("MLFLOW_EXPERIMENT_NAME", str(experiment_name))
 
     reg = register_model_component(
         registry_name=registry_name,
         recall_threshold=recall_threshold,
+        tracking_uri=tracking_uri,
+        experiment_name=experiment_name,
+        artifact_name=artifact_name,
+        mlflow_metadata=tuning.outputs["mlflow_metadata"]
     ).after(eval)
-    reg.set_env_variable("MLFLOW_TRACKING_URI", str(tracking_uri))
-    reg.set_env_variable("MLFLOW_EXPERIMENT_NAME", str(experiment_name))
 
 
 # Compile pipeline 
