@@ -3,7 +3,7 @@ from kfp.dsl import Input, Artifact, OutputPath, Dataset
 
 
 @dsl.component(
-    base_image="sandy345/kubeflow-pipeline:v2.0.1",
+    base_image="sandy345/final-kubeflow-pipeline:v1.0.0",
 )
 def trainer_model_component(
     feast_repo_path: str,
@@ -53,7 +53,7 @@ def trainer_model_component(
     job_id = client.train(
         # runtime=client.get_runtime("torch-distributed"),
         trainer=CustomTrainer(
-            image="sandy345/kubeflow-pipeline:v2.0.1",
+            image="sandy345/final-kubeflow-pipeline:v1.0.0",
             func=run_training,
             func_args={
                 "feast_repo_path": feast_repo_path,

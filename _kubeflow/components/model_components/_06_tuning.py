@@ -2,7 +2,7 @@ from kfp import dsl
 from kfp.dsl import Input, Output, OutputPath, Model, Dataset
 
 @dsl.component(
-    base_image="sandy345/kubeflow-pipeline:v2.0.1"
+    base_image="sandy345/final-kubeflow-pipeline:v1.0.0"
 )
 def tuning_component(
     feast_repo_path: str,

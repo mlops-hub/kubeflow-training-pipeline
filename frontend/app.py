@@ -4,7 +4,6 @@ import os
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from feast import FeatureStore
-from _mlflow.registry import MLflowRegistry
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -28,18 +27,23 @@ feature_columns = [
     f for f in feature_columns
     if f not in ["employee_id", "attrition"]
 ]
-
 print("Model features:", feature_columns)
 
 
 app = Flask(__name__)
 CORS(app)
 
+# initialize db
+from monitoring.scripts.save_prediciton import init_prediciton_db, log_prediction
+from monitoring.scripts.save_live_db import init_live_db, log_live_data
+
+init_prediciton_db()
+init_live_db()
+
 
 @app.route('/')
 def index():
     return render_template('index.html')
-
 
 
 @app.route("/features/<employeeId>", methods=["GET"])
@@ -83,26 +87,31 @@ def predict():
         if missing:
             raise ValueError(f"Missing features: {missing}")
 
-        df_input = pd.Dataframe([data]).reindex(columns=feature_columns)
-        print('df-input: ', df_input.to_dict(orient="records"))
+        df_input = pd.DataFrame([data]).reindex(columns=feature_columns)
+        input_data = df_input.to_dict(orient="records")[0]
+        print('df-input: ', input_data)
 
+        # log live features (prediction may be added after model call)
+        log_live_data(input_data)
 
         response = requests.post(
-            KSERVE_URL, 
-            json={"instances": [df_input.to_dict(orient="records")]}
+            KSERVE_URL,
+            json={"instances": df_input.to_dict(orient="records")}
         )
+        response.raise_for_status()
         print('results: ', response.json())
 
         prediction_result = response.json()
-        
-        payload = { 
-            "prediction": prediction_result['predictions'][0], 
-        }
+
+        payload = {"prediction": prediction_result.get('predictions', [None])[0], "input_data": input_data}
+        # persist prediction
+        log_prediction(payload=payload)
 
         return payload
-    
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+
 
 
 if __name__ == "__main__":

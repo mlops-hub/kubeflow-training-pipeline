@@ -1,7 +1,7 @@
 from kfp.dsl import component
 
 @component(
-    base_image="sandy345/kubeflow-pipeline:v2.0.1"
+    base_image="sandy345/final-kubeflow-pipeline:v1.0.0"
 )
 def register_model_component(
     registry_name: str, 

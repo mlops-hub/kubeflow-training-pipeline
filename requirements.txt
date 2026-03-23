@@ -28,6 +28,9 @@ mlflow
 flask
 flask-cors
 
+# Monitoring
+evidently
+
 # feast-feature-store
 feast
 feast[redis]
