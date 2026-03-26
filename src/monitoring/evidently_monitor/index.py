@@ -30,6 +30,7 @@ class MonitorPipeline:
             return PROJECT_ID
         print("Creating new Evidently Cloud project.... ")
         project = self.ws.create_project("Employee Attrition", org_id=ORG_ID)
+        print(project.id)
         project.description = "Predict whether employee saty or leave"
         project.save()
         return project.id
@@ -39,13 +40,14 @@ class MonitorPipeline:
         # start_prometheus_server(PROMETHEUS_PORT)
         date_str = datetime.now().strftime("%Y%m%d")
 
-        print("🚀 Starting Animal Classification Monitoring...")
+        print("🚀 Starting Employee Attrition Monitoring...")
         monitor = MonitorCore(self.ws, self.project_id, self.loader)
         reports = monitor.generate_reports()
         if not reports:
             print("No reports generated.")
             return
-        self.alert_engine.process_reports(reports, date_str)
+        else:
+            self.alert_engine.process_reports(reports, date_str)
         print("✅ Monitoring completed successfully!")
         return
 

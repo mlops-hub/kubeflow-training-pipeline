@@ -151,7 +151,7 @@ if __name__ == "__main__":
         train_path=TRAIN_PATH, 
         test_path=TEST_PATH, 
         preprocess_path=PREPROCESSOR_PATH,
-        tracking_uri = os.environ["MLFLOW_TRACKING_URI"],
+        tracking_uri = os.environ["MLFLOW_TRACKING_INTERNAL_URI"],
         experiment_name = os.environ["MLFLOW_EXPERIMENT_NAME"],
     )
 

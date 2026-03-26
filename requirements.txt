@@ -36,5 +36,8 @@ feast
 feast[redis]
 feast[postgres]
 
+sqlalchemy
+psycopg2-binary
+
 # redis
 # installed in server

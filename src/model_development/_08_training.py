@@ -113,6 +113,15 @@ def training_data(
         entity_df=entity_df_train,
         features=store.get_feature_service("employee_attrition_features")
     ).to_df()
+
+    # save reference data
+    from monitoring.scripts.save_reference import save_reference_data
+    from monitoring.scripts.prod_save_reference_data import log_reference_data_postgres
+
+    save_reference_data(df_train)
+    log_reference_data_postgres(df_train)
+
+    
     # ---------- end feast ----------
 
     X_train = df_train.drop(columns=['employee_id', 'event_timestamp', 'attrition'])

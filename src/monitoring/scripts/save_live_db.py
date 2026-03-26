@@ -19,26 +19,25 @@ def init_live_db():
             employee_id TEXT,
             age_group INTEGER,
             years_at_company INTEGER,
-            job_role TEXT,
-            annual_income REAL,
-            overall_satisfaction TEXT,
-            performance_rating TEXT,
+            annual_income INTEGER,
+            overall_satisfaction INTEGER,
+            performance_rating INTEGER,
             number_of_promotions INTEGER,
-            overtime TEXT,
-            education_level TEXT,
+            overtime INTEGER,
+            education_level INTEGER,
             number_of_dependents INTEGER,
-            job_level TEXT,
-            company_size TEXT,
-            company_tenure INTEGER,
-            remote_work TEXT,
-            opportunities TEXT,
-            company_reputation TEXT,
+            job_level INTEGER,
+            company_size INTEGER,
+            company_tenure REAL,
+            remote_work INTEGER,
+            opportunities INTEGER,
+            company_reputation INTEGER,
             role_stagnation_ratio REAL,
             tenure_gap REAL,
             early_company_tenure_risk REAL,
             long_tenure_low_role_risk REAL,
-            prediction TEXT,
-            true_label TEXT,
+            prediction INTEGER,
+            target INTEGER,
             event_timestamp TEXT
         )
     """)
@@ -50,8 +49,8 @@ def log_live_data(feature_row: dict, prediction: str = None, employee_id: str = 
     conn = sqlite3.connect(LIVE_DB_PATH)
 
     allowed_keys = [
-        "employee_id", "age_group", "years_at_company", "job_role",
-        "annual_income", "overall_satisfaction", "performance_rating",
+        "employee_id", "age_group", "years_at_company", "annual_income", 
+        "overall_satisfaction", "performance_rating",
         "number_of_promotions", "overtime", "education_level",
         "number_of_dependents", "job_level", "company_size",
         "company_tenure", "remote_work", "opportunities",
@@ -69,7 +68,7 @@ def log_live_data(feature_row: dict, prediction: str = None, employee_id: str = 
     true_label = feature_row.get("attrition") or feature_row.get("true_label")
     input_row["true_label"] = true_label
 
-    input_row["prediction"] = prediction or feature_row.get("prediction")
+    input_row["prediction"] = feature_row.get("attrition") or int(prediction)
     input_row["event_timestamp"] = datetime.now().isoformat()
 
     df = pd.DataFrame([input_row])

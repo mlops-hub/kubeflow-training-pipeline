@@ -34,8 +34,9 @@ app = Flask(__name__)
 CORS(app)
 
 # initialize db
-from monitoring.scripts.save_prediciton import init_prediciton_db, log_prediction
-from monitoring.scripts.save_live_db import init_live_db, log_live_data
+from src.monitoring.scripts.save_prediciton import init_prediciton_db, log_prediction
+from src.monitoring.scripts.save_live_db import init_live_db, log_live_data
+from src.monitoring.scripts.prod_save_live_db import log_live_data_direct
 
 init_prediciton_db()
 init_live_db()
@@ -91,9 +92,6 @@ def predict():
         input_data = df_input.to_dict(orient="records")[0]
         print('df-input: ', input_data)
 
-        # log live features (prediction may be added after model call)
-        log_live_data(input_data)
-
         response = requests.post(
             KSERVE_URL,
             json={"instances": df_input.to_dict(orient="records")}
@@ -103,9 +101,28 @@ def predict():
 
         prediction_result = response.json()
 
-        payload = {"prediction": prediction_result.get('predictions', [None])[0], "input_data": input_data}
+        payload = {
+            "prediction": prediction_result.get('predictions', [None])[0], 
+            "target_value": "Leave" if (prediction_result.get('predictions', [None])[0] == 1) else "Stay",
+            "confidence": prediction_result.get('confidences', [None])[0] if prediction_result.get('confidences') else None,
+        }
+        print(payload.get("prediction"))
+
+        # log live features (prediction may be added after model call)
+        log_live_data(
+            feature_row=input_data,
+            prediction=int(payload.get("prediction")),
+            employee_id=input_data.get("employee_id") or None
+        )
+
+        log_live_data_direct(
+            feature_row=input_data,
+            prediction=int(payload.get("prediction")),
+            employee_id=input_data.get("employee_id") or None
+        )
+
         # persist prediction
-        log_prediction(payload=payload)
+        log_prediction(payload)
 
         return payload
     except Exception as e:

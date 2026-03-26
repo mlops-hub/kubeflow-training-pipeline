@@ -4,7 +4,6 @@ from pathlib import Path
 
 DB_DIR = Path(__file__).resolve().parent.parent / "db"
 DB_DIR.mkdir(parents=True, exist_ok=True)
-
 DB_PATH = DB_DIR / "reference_data.db"
 # print(DB_PATH)
 

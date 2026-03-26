@@ -52,7 +52,6 @@ def full_pipeline(
         input_data=cleaned.outputs['output_data']
     )
     
-
     preprocess = preprocessed_component(
         input_data=feature_engg.outputs['output_data']
     )

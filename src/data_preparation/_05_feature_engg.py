@@ -51,15 +51,19 @@ def feature_data(df_path: str) -> pd.DataFrame:
     # -----------------------------------------------
     df_fe["annual_income"] = df_fe["monthly_income"] * 12
 
+    print(df_fe["annual_income"].min(), "-", df_fe["annual_income"].max())
+    # 14712 - 193788
+
     df_fe["annual_income"] = pd.cut(
         df_fe["annual_income"],
-        bins=[0, 240000, 420000, 600000, 2000000, float("inf")],
-        labels=[0, 1, 2, 3, 4],
+        bins=[0, 30000, 60000, 90000, 120000, float("inf")],
+        labels=[1, 2, 3, 4, 5],
         include_lowest=True,
     ).astype("Int64")
     df_fe = df_fe.drop(columns=["monthly_income"])
 
     # age binning
+    print(df_fe['age'].min(), "-", df_fe['age'].max())
     df_fe["age_group"] = pd.cut(
         df_fe["age"],
         bins=[17, 25, 35, 45, 60, 65],

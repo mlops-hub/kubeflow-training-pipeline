@@ -15,32 +15,26 @@ def init_prediciton_db():
         CREATE TABLE IF NOT EXISTS prediction_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp TEXT,
-            input_data TEXT,
-            prediction TEXT,
+            prediction INTEGER,
+            target_value TEXT,
             confidence REAL       
         );
     """)
     conn.commit()
     conn.close()
 
-def log_prediction(prediction: str = None, input_data=None, confidence: float = None, payload: dict = None):
+def log_prediction(payload: dict = None):
     if payload is not None:
-        prediction = payload.get("prediction", prediction)
-        input_data = payload.get("input_data", payload.get("input", input_data))
-        confidence = payload.get("confidence", confidence)
-
-    input_text = None
-    try:
-        input_text = json.dumps(input_data)
-    except Exception:
-        input_text = str(input_data)
+        prediction = payload.get("prediction")
+        target_value = payload.get("target_value")
+        confidence = payload.get("confidence")
 
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     timestamp = datetime.datetime.now().isoformat()
     cursor.execute(
-        "INSERT INTO prediction_logs (timestamp, input_data, prediction, confidence) VALUES (?, ?, ?, ?)",
-        (timestamp, input_text, str(prediction) if prediction is not None else None, confidence)
+        "INSERT INTO prediction_logs (timestamp, prediction, target_value, confidence) VALUES (?, ?, ?, ?)",
+        (timestamp, int(prediction) if prediction is not None else None, str(target_value), confidence)
     )
     conn.commit()
     conn.close()
