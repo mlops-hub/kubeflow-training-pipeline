@@ -1,7 +1,8 @@
 from kfp.dsl import component
+from _kubeflow.config import BASE_IMAGE
 
 @component(
-    base_image="sandy345/final-kubeflow-pipeline:v1.0.0"
+    base_image=BASE_IMAGE
 )
 def wait_for_training(job_name: str, namespace: str):
     from kubernetes import client, config

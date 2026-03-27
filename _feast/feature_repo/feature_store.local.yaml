@@ -13,4 +13,4 @@ online_store:
 
 offline_store:
     type: file
-s3_endpoint_override: http://0.0.0.0:9000
+# s3_endpoint_override: http://0.0.0.0:9000

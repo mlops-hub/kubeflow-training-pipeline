@@ -5,6 +5,8 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from feast import FeatureStore
 from dotenv import load_dotenv
+# initialize db
+from src.monitoring.scripts.prod_save_live_db import log_live_data
 
 load_dotenv()
 
@@ -32,14 +34,6 @@ print("Model features:", feature_columns)
 
 app = Flask(__name__)
 CORS(app)
-
-# initialize db
-from src.monitoring.scripts.save_prediciton import init_prediciton_db, log_prediction
-from src.monitoring.scripts.save_live_db import init_live_db, log_live_data
-from src.monitoring.scripts.prod_save_live_db import log_live_data_direct
-
-init_prediciton_db()
-init_live_db()
 
 
 @app.route('/')
@@ -114,15 +108,6 @@ def predict():
             prediction=int(payload.get("prediction")),
             employee_id=input_data.get("employee_id") or None
         )
-
-        log_live_data_direct(
-            feature_row=input_data,
-            prediction=int(payload.get("prediction")),
-            employee_id=input_data.get("employee_id") or None
-        )
-
-        # persist prediction
-        log_prediction(payload)
 
         return payload
     except Exception as e:

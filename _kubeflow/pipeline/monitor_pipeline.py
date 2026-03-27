@@ -1,7 +1,7 @@
 from kfp import dsl
 
 # util
-from _kubeflow.components.monitor_component.monitor_components import get_live_data, get_reference_data
+from _kubeflow.components.monitor_component.monitor_components import get_live_data, get_reference_data, run_monitor_comp
 
 
 @dsl.pipeline( 
@@ -22,6 +22,13 @@ def monitor_pipeline(
 ):
     
     live_data = get_live_data()
+
+    reference_data = get_reference_data().after(live_data)
+
+    run_monitor_comp(
+        
+    ).after(reference_data)
+
 
    
 

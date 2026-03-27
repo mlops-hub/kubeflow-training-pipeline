@@ -15,6 +15,7 @@ from _kubeflow.components.model_components._07_training import trainer_model_com
 from _kubeflow.components.model_components._08_evaluation import evaluation_component
 from _kubeflow.components.model_components._06_tuning import tuning_component
 from _kubeflow.components.model_components._09_register import register_model_component
+from _kubeflow.components.monitor_component.monitor_components import run_monitor_comp
 
 # util
 from _kubeflow.components.util.wait_job import wait_for_training
@@ -138,6 +139,11 @@ def full_pipeline(
         artifact_name=artifact_name,
         mlflow_run_id=tuning.outputs["mlflow_run_id"],
     ).after(eval)
+
+    # Monitoring step: run Evidently monitor after model registration
+    monitor = run_monitor_comp().after(reg)
+    monitor.set_caching_options(False)
+    kubernetes.set_image_pull_policy(monitor, "IfNotPresent")
 
 
 # Compile pipeline 

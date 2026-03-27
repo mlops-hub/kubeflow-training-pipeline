@@ -1,8 +1,9 @@
 from kfp import dsl
 from kfp.dsl import component, Input, Output, Dataset, Model
+from _kubeflow.config import BASE_IMAGE
 
 @component(
-    base_image="sandy345/final-kubeflow-pipeline:v1.0.0"
+    base_image=BASE_IMAGE
 )
 def preprocessed_component(
     input_data: Input[Dataset],

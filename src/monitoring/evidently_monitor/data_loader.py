@@ -1,13 +1,16 @@
 import pandas as pd
 import sqlite3
 from evidently import DataDefinition, Dataset, BinaryClassification
-from scripts.schema import enforce_schema
+from scripts.enforce_schema import enforce_schema
+
+
 
 class DataLoader:
-    def __init__(self, reference_db_path, live_db_path):
-        self.reference_db_path = reference_db_path
-        self.live_db_path = live_db_path
+    def __init__(self, reference_db_path, live_db_path, postgres_uri):
+        from sqlalchemy import create_engine, text
+        self.engine = create_engine(postgres_uri)
         self.data_definition = self._create_column_mapping()
+
 
     def _create_column_mapping(self):
         dd = DataDefinition(
@@ -28,37 +31,28 @@ class DataLoader:
         )
         return dd
     
+
     def load_reference_data(self):
-        conn = sqlite3.connect(self.reference_db_path)
-        query = "SELECT * FROM reference_data"
-        df = pd.read_sql(query, conn)
-        conn.close()
-        df['event_timestamp'] = pd.to_datetime(df['event_timestamp'])
+        print(self.reference_db_path)
+        df = pd.read_sql("SELECT * FROM reference_data", self.engine)
         # rename target column
         df = df.rename(columns={'attrition': 'target'})
-        df['prediciton'] = df['target'].copy()
+        df['prediction'] = df['target']
+        # df = enforce_schema(df)
         return df
     
 
     def load_sample_reference_data(self):
-        conn = sqlite3.connect(self.reference_db_path)
-        query = "SELECT * FROM reference_data"
-        df = pd.read_sql(query, conn)
-        conn.close()
-        df['event_timestamp'] = pd.to_datetime(df['event_timestamp'])
-        # rename target column
-        df = df.rename(columns={'attrition': 'target'})
-        df['prediciton'] = df['target'].copy()
-        df_sampled = df.sample(n=500, random_state=42)
+        df = self.load_reference_data()
+        df_sampled = df.sample(n=35, random_state=42)
+        df_sampled = enforce_schema(df_sampled)
         return df_sampled
     
 
     def load_live_data(self):
-        conn = sqlite3.connect(self.live_db_path)
-        query = "SELECT * FROM live_data"
-        df = pd.read_sql(query, conn)
-        conn.close()
+        df = pd.read_sql("SELECT * FROM live_data", self.engine)
         df['event_timestamp'] = pd.to_datetime(df['event_timestamp'])
+        # df = enforce_schema(df)
         return df
     
     

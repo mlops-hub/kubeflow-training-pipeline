@@ -2,10 +2,10 @@ from kfp import dsl
 from kfp.dsl import Input, Artifact, InputPath, OutputPath
 from kubernetes import client as k8s_client
 from kubernetes.client import V1EnvVar, V1EnvVarSource, V1SecretKeySelector
-
+from _kubeflow.config import BASE_IMAGE
 
 @dsl.component(
-    base_image="sandy345/kubeflow-pipeline:v2.0.1",
+    base_image=BASE_IMAGE,
     packages_to_install=['kubernetes']
 )
 def trainer_model_component(

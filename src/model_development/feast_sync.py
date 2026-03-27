@@ -7,7 +7,10 @@ import pyarrow.fs as pafs
 
 def sync_to_feast(parquet_path: str, feast_repo_path: str):
     
-    store = FeatureStore(repo_path=feast_repo_path)
+    store = FeatureStore(
+        repo_path=feast_repo_path,
+        fs_yaml_file=f"{feast_repo_path}/feature_store.local.yaml"
+    )
 
     # UPDATE THE SOURCE with MinIO endpoint override
     employee_features_fv.batch_source = FileSource(

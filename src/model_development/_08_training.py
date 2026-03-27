@@ -94,7 +94,7 @@ def training_data(
     # Download files from MinIO
     # Note: Artifact URIs are folders, actual files are inside
     print(f"Checking file path to download from local or minio....")
-    local_train = download_local_or_minio(train_path + "/train.csv") # local use "06_preprocess_train_df.csv"
+    local_train = download_local_or_minio(train_path + "/06_preprocess_train_df.csv") # local use "06_preprocess_train_df.csv"
     local_preprocessor = download_local_or_minio(preprocessor_path + "/preprocessor.pkl")
     local_params = download_local_or_minio(best_params_path + "/best_parameters.json")
                                  
@@ -107,19 +107,18 @@ def training_data(
     entity_df_train = entity_df_train[entity_cols].copy()
     entity_df_train['event_timestamp'] = pd.to_datetime(entity_df_train['event_timestamp'])
 
-    store = FeatureStore(repo_path=feast_repo_path)
+    store = FeatureStore(repo_path=feast_repo_path, fs_yaml_file=f"{feast_repo_path}/feature_store.local.yaml")
 
     df_train = store.get_historical_features(
         entity_df=entity_df_train,
         features=store.get_feature_service("employee_attrition_features")
     ).to_df()
 
-    # save reference data
-    from monitoring.scripts.save_reference import save_reference_data
-    from monitoring.scripts.prod_save_reference_data import log_reference_data_postgres
+    print(df_train.head(3))
 
-    save_reference_data(df_train)
-    log_reference_data_postgres(df_train)
+    # # save reference data
+    # from src.monitoring.scripts.prod_save_reference_data import log_reference_data_postgres
+    # log_reference_data_postgres(df_train)
 
     
     # ---------- end feast ----------

@@ -11,8 +11,8 @@ POSTGRES_URI = os.environ.get(
 engine = create_engine(POSTGRES_URI)
 
 with engine.connect() as conn:
-    df = pd.read_sql("SELECT * FROM live_data", engine)
-    print(df.head())
-    print(df['features'].columns.tolist())
+    result = pd.read_sql("SELECT * FROM reference_data", engine)
+    print(result.head())
+    print(result.isnull().sum())
 
 

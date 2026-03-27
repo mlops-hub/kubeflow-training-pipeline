@@ -38,19 +38,31 @@ def get_reference_data(
     ref_data: Output[Dataset]
 ):
     import pandas as pd
-    from sqlalchemy import create_engine
-    import os
+    import boto3
+    from botocore.client import Config
+    from src.monitoring.scripts.prod_save_reference_data import log_reference_data_postgres
 
-    POSTGRES_URI = os.environ.get(
-        "POSTGRES_URI_EXTERNAL",
-        "postgresql+psycopg://feast:feast@postgres.feast.svc.cluster.local:5432/feast"
+    bucket = "mlpipeline"
+    key = "v2/artifacts/employee-attrition-full-pipeline/90db58cc-4685-4029-9975-963032d1a9c7/preprocessed-component/6cf2fedf-676a-4838-ba9c-27bff34b1893/train_data/train.csv"
+
+    s3 = boto3.client(
+        "s3",
+        endpoint_url="http://minio-service.kubeflow:9000",
+        aws_access_key_id="minio",
+        aws_secret_access_key="minio123",
+        config=Config(signature_version="s3v4"),
+        region_name="us-east-1"
     )
 
-    engine = create_engine(POSTGRES_URI)
+    local_path = "/tmp/train.csv"
+    s3.download_file(bucket, key, local_path)
 
-    df = pd.read_sql("SELECT * FROM reference_data", engine)
-
+    df = pd.read_csv(local_path)
     print(df.head())
+
+    # df_postgres = df.copy()
+    # log_reference_data_postgres(df_postgres)
+    # print('✅ got data from postgres...')
 
     df.to_csv(ref_data.path, index=False)
 
@@ -59,11 +71,7 @@ def get_reference_data(
 @component(
     base_image=BASE_IMAGE
 )
-def run_monitor_comp(
-    ref_path: Input[Dataset],
-    live_path: Input[Dataset],
-    output_path: Output[Dataset]
-):
+def run_monitor_comp():
     import os
     from src.monitoring.evidently_monitor.index import MonitorPipeline
 
@@ -78,8 +86,8 @@ def run_monitor_comp(
         org_id=os.environ.get("EVIDENLTY_ORG_ID", ""),
         project_id=os.environ.get("EVIDENTLY_PROJECT_ID", ""),
         postgres_uri=POSTGRES_URI,
-        ref_path=ref_path.path,
-        live_path=live_path.path,
-        output_path=output_path.path,
+        ref_path=Input[Dataset],
+        live_path=Input[Dataset],
+        output_path=Output[Dataset],
     )
     pipeline.run_daily()

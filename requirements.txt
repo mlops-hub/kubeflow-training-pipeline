@@ -19,6 +19,7 @@ kfp
 kfp-kubernetes
 kubernetes
 kubeflow-training
+kubeflow
 
 # mlflow
 mlflow

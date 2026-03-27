@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: CronWorkflow
+metadata:
+  name: employee-attrition-monitor-daily
+  namespace: kubeflow
+spec:
+  schedule: "0 6 * * *" # daily at 06:00 UTC
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  workflowSpec:
+    entrypoint: monitor-pipeline
+    templates:
+      - name: monitor-pipeline
+        steps:
+          - - name: run-monitor
+              template: run-monitor-template
+      - name: run-monitor-template
+        container:
+          image: sandy345/final-kubeflow-pipeline:v1.0.0
+          command: ["python", "-u", "-c"]
+          args:
+            - "from src.monitoring.evidently_monitor.index import MonitorPipeline; MonitorPipeline().run_daily()"
+          env:
+            - name: EVIDENTLY_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: evidently-secret
+                  key: token
+            - name: EVIDENTLY_URL
+              value: "https://app.evidently.cloud"
+            - name: MONITOR_PROMETHEUS_PORT
+              value: "9090"
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
