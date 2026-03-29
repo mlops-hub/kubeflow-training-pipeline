@@ -1,9 +1,4 @@
-"""
-Utility to submit the monitoring pipeline as a recurring Kubeflow Pipelines run.
-Creates a recurring run via the KFP SDK and also includes a CronWorkflow manifest example.
-"""
 from kfp import Client
-from kfp_server_api.rest import ApiException
 import os
 
 # Adjust these to your environment
@@ -22,7 +17,10 @@ def create_recurring_run():
 
     # If pipeline package exists, upload and create a pipeline
     if os.path.exists(PIPELINE_PACKAGE):
-        pipeline = client.upload_pipeline(pipeline_package_path=PIPELINE_PACKAGE, pipeline_name=PIPELINE_NAME)
+        pipeline = client.upload_pipeline(
+            pipeline_package_path=PIPELINE_PACKAGE, 
+            pipeline_name=PIPELINE_NAME
+        )
         pipeline_id = pipeline.id
     else:
         # try to find by name

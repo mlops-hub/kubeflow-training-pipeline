@@ -11,7 +11,7 @@ print('Pipeline Endpoint: ', PIPELINE_ENDPOINT)
 EXPERIMENT_NAME = "monitoring-pipeline-v1.0.0"
 
 def submit_monitor_pipeline():
-    client = kfp.Client(host=PIPELINE_ENDPOINT)
+    client = kfp.Client(host=PIPELINE_ENDPOINT, namespace="monitor-kubeflow")
 
     try:
         experiment = client.get_experiment(experiment_name=EXPERIMENT_NAME)
@@ -32,3 +32,6 @@ def submit_monitor_pipeline():
 
 if __name__ == "__main__":
     submit_monitor_pipeline()
+
+
+# python -m _kubeflow.pipeline.submit_monitor_piepline

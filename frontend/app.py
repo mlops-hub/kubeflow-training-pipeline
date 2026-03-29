@@ -88,7 +88,7 @@ def predict():
 
         response = requests.post(
             KSERVE_URL,
-            json={"instances": df_input.to_dict(orient="records")}
+            json={"instances": [df_input.to_dict(orient="records")]}
         )
         response.raise_for_status()
         print('results: ', response.json())

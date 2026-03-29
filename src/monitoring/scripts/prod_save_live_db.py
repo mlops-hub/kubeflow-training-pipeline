@@ -1,7 +1,6 @@
 # save_live_db_direct.py
 import os
-from sqlalchemy import create_engine, Table, Column, Integer, DateTime, Float, String, MetaData
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import create_engine, text, Table, Column, Integer, DateTime, Float, String, MetaData
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -9,7 +8,7 @@ load_dotenv()
 # PostgreSQL connection string (external link)
 POSTGRES_URI = os.environ.get(
     "POSTGRES_URI_EXTERNAL",
-    "postgresql+psycopg2://feast:feast@68.183.87.245:30032/feast"
+    "postgresql+psycopg://feast:feast@68.183.87.245:30032/feast"
 )
 
 # Connect to DB
@@ -51,16 +50,26 @@ metadata.create_all(engine)
 
 def log_live_data(feature_row: dict, prediction: int = None, employee_id: str = None):
     from datetime import datetime 
-    
+
     row = {
         "employee_id": employee_id,
         **feature_row,
         "prediction": prediction,
         "target": prediction,
-        "event_timestamp": datetime.utcnow()
+        "event_timestamp": datetime.now()
     }
 
     with engine.connect() as conn:
         conn.execute(live_table.insert().values(row))
         conn.commit()
     print(f"✅ Logged live data for employee_id={employee_id}")
+
+if __name__ == "__main__":
+
+    engine = create_engine(POSTGRES_URI)
+
+    with engine.connect() as conn:
+        conn.execute(text("DROP TABLE IF EXISTS live_data;"))
+        conn.commit()
+
+    print("✅ live_data dropped")

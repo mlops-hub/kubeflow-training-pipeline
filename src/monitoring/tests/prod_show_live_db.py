@@ -6,7 +6,7 @@ import pandas as pd
 load_dotenv()
 POSTGRES_URI = os.environ.get(
     "POSTGRES_URI_EXTERNAL",
-    "postgresql+psycopg2://feast:feast@68.183.87.245:30032/feast"
+    "postgresql+psycopg://feast:feast@68.183.87.245:30032/feast"
 )
 engine = create_engine(POSTGRES_URI)
 

@@ -14,7 +14,6 @@ venv/
 
 /deploy_kserve
 
-/feature_store_ex.yaml
-/test_workflow.py
 /upload_dataset.py
 /example*.yaml
+/src/monitoring/db/*.db

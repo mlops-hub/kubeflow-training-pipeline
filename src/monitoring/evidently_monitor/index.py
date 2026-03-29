@@ -11,14 +11,14 @@ from evidently.ui.workspace import CloudWorkspace
 load_dotenv()
 
 class MonitorPipeline:
-    def __init__(self, ev_token, ev_url, ref_path, live_path, output_path, postgres_uri, org_id, project_id=None):
+    def __init__(self, ev_token, ev_url, output_path, postgres_uri, org_id, project_id=None):
         self.ws = CloudWorkspace(
             token=ev_token,
             url=ev_url
         )
         self.org_id = org_id
         self.project_id = self._get_project_id(project_id)
-        self.loader = DataLoader(ref_path, live_path, postgres_uri)
+        self.loader = DataLoader(postgres_uri)
         # self.alert_engine = AlertEngine(output_path)
         # os.makedirs(output_path, exist_ok=True)
 
@@ -31,13 +31,12 @@ class MonitorPipeline:
         project = self.ws.create_project("Employee Attrition", org_id=self.org_id)
         project.description = "Predict whether employee stay or leave"
         project.save()
-        print(project.id)
         return project.id
     
 
     def run_daily(self):
         # start_prometheus_server(PROMETHEUS_PORT)
-        date_str = datetime.now().strftime("%Y%m%d")
+        # date_str = datetime.now().strftime("%Y%m%d")
 
         print("🚀 Starting Employee Attrition Monitoring...")
         monitor = MonitorCore(self.ws, self.project_id, self.loader)
@@ -76,8 +75,6 @@ if __name__ == '__main__':
     pipeline = MonitorPipeline(
         ev_token=EVIDENTLY_TOKEN,
         ev_url=EVIDENTLY_URL,
-        ref_path=str(REFERENCE_DB_PATH),
-        live_path=str(LIVE_DB_PATH),
         output_path=str(OUTPUT_DB_PATH),
         postgres_uri=str(POSTGRES_URI),
         org_id=ORG_ID,

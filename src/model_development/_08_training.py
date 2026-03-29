@@ -116,9 +116,9 @@ def training_data(
 
     print(df_train.head(3))
 
-    # # save reference data
-    # from src.monitoring.scripts.prod_save_reference_data import log_reference_data_postgres
-    # log_reference_data_postgres(df_train)
+    # save reference data
+    from src.monitoring.scripts.prod_save_reference_data import log_reference_data_postgres
+    log_reference_data_postgres(df_train)
 
     
     # ---------- end feast ----------
