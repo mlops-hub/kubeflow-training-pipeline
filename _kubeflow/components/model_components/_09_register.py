@@ -10,7 +10,7 @@ def register_model_component(
     tracking_uri: str,
     experiment_name: str,
     artifact_name: str,
-    mlflow_run_id: str
+    mlflow_run_id: str,
 ):
     from src.model_development._10_registry import register_model_to_mlflow, promote_to_production
 

@@ -13,6 +13,6 @@ engine = create_engine(POSTGRES_URI)
 with engine.connect() as conn:
     df = pd.read_sql("SELECT * FROM live_data", engine)
     print(df.head())
-    print(df['features'].columns.tolist())
+    print(df.columns.tolist())
 
 

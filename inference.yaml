@@ -8,6 +8,7 @@ spec:
     serviceAccountName: kserve-minio-sa
     sklearn:
       storageUri: "s3://mlpipeline/mlflow-artifacts/2/models/m-51b60f969a1445fb9fdd9b2385e29f75/artifacts/"
+      # s3://<bucket>/key/version/models/<model-id>/artifacts
       resources:
         requests:
           cpu: 100m

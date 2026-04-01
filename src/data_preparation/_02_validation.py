@@ -29,11 +29,43 @@ employee_schema = pa.DataFrameSchema(
     coerce=True,
 )
 
-def validate_data(df_path: str) -> pd.DataFrame:
+employee_schema_retrain = pa.DataFrameSchema(
+    {
+        "employee_id":                Column(float, Check.ge(1),  nullable=False),
+        "attrition":                  Column(float, Check.isin([0.0, 1.0]), nullable=False),
+        "age_group":                  Column(int,   Check.ge(0),  nullable=False),
+        "years_at_company":           Column(float, Check.ge(0),  nullable=False),
+        "annual_income":              Column(int,   Check.ge(0),  nullable=False),
+        "job_level":                  Column(int,   Check.ge(0),  nullable=False),
+        "performance_rating":         Column(int,   Check.ge(0),  nullable=False),
+        "number_of_promotions":       Column(int,   Check.ge(0),  nullable=False),
+        "education_level":            Column(int,   Check.ge(0),  nullable=False),
+        "number_of_dependents":       Column(int,   Check.ge(0),  nullable=False),
+        "company_size":               Column(int,   Check.ge(0),  nullable=False),
+        "company_tenure":             Column(float, Check.ge(0),  nullable=False),
+        "remote_work":                Column(int,   Check.isin([0, 1]), nullable=False),
+        "overtime":                   Column(int,   Check.isin([0, 1]), nullable=False),
+        "company_reputation":         Column(int,   Check.ge(0),  nullable=False),
+        "overall_satisfaction":       Column(int,   Check.ge(0),  nullable=False),
+        "opportunities":              Column(int,   Check.ge(0),  nullable=False),
+        "role_stagnation_ratio":      Column(float, nullable=False),
+        "tenure_gap":                 Column(float, nullable=False),
+        "early_company_tenure_risk":  Column(float, nullable=False),
+        "long_tenure_low_role_risk":  Column(float, nullable=False),
+    },
+    strict=False,
+    coerce=True,
+)
+
+def validate_data(is_retrain: bool, df_path: str) -> pd.DataFrame:
     try:
         df = pd.read_csv(df_path)
 
-        validate_df = employee_schema(df, lazy=True)
+        if is_retrain:
+            validate_df = employee_schema_retrain(validate_df, lazy=True)
+        else:
+            validate_df = employee_schema(df, lazy=True)
+
         print("Data validation successful.")
         return validate_df
 
@@ -52,7 +84,7 @@ if __name__ == "__main__":
     VALIDATION_PATH = DATASET_PATH / "02_validation.csv"
 
     
-    validated_df = validate_data(INGESTION_PATH)
+    validated_df = validate_data(False, INGESTION_PATH)
 
     validated_df.to_csv(VALIDATION_PATH, index=False)
 

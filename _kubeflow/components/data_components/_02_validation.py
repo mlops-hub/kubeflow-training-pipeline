@@ -6,6 +6,7 @@ from _kubeflow.config import BASE_IMAGE
     base_image=BASE_IMAGE
 )
 def validation_component(
+    is_retrain: bool,
     input_data: Input[Dataset], 
     output_data: Output[Dataset]
 ):
@@ -14,7 +15,7 @@ def validation_component(
 
     input_path = os.path.join(input_data.path, "ingestion.csv")
 
-    validated_df = validate_data(input_path)
+    validated_df = validate_data(is_retrain, input_path)
 
     os.makedirs(output_data.path, exist_ok=True)
     output_path = os.path.join(output_data.path, "validation.csv")

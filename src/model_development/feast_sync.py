@@ -8,7 +8,7 @@ import pyarrow.fs as pafs
 def sync_to_feast(parquet_path: str, feast_repo_path: str):
     
     store = FeatureStore(
-        repo_path=feast_repo_path,
+        repo_path=feast_repo_path, #_feast/feature_repo
         fs_yaml_file=f"{feast_repo_path}/feature_store.local.yaml"
     )
 
@@ -41,7 +41,7 @@ def sync_to_feast(parquet_path: str, feast_repo_path: str):
     
     print("✓ Feast Sync Complete")
 
-
+# data ---> register metadata (postgres) -> offline store (minio/s3 -> ref data) -> online store(redis)
 
 if __name__ == "__main__":
     from pathlib import Path

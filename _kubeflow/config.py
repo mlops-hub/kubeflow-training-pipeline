@@ -1,1 +1,1 @@
-BASE_IMAGE = "sandy345/monitor-pipeline:v1.0.1"
+BASE_IMAGE = "<docker-username>/<repo-name>:<tag>"

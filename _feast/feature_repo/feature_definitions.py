@@ -64,9 +64,9 @@ employee_features_fs = FeatureService(
         employee_features_fv[[
             "age_group",
             "annual_income",
-            "company_reputation",
-            "company_size",
-            "company_tenure",
+            "size",
+            "comcompany_reputation",
+            "company_pany_tenure",
             "education_level",
             "early_company_tenure_risk",
             "job_level",

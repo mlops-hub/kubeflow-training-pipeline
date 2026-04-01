@@ -108,7 +108,7 @@ def tuning_data(feast_repo_path: str, train_path: str, test_path: str, preproces
 
     # log in mlflow
     registry = MLflowRegistry(
-        tracking_uri=tracking_uri,
+        tracking_uri=tracking_uri, # http://localhost:5000
         experiment_name=experiment_name
     )
 
@@ -160,3 +160,5 @@ if __name__ == "__main__":
 
     with open(MLFLOW_RUN_ID, "w") as f:
         f.write(run_id)
+
+

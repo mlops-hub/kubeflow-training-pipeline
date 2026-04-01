@@ -98,7 +98,7 @@ class MonitorCore:
         return eval
 
 
-    def _extract_dataset_drift(self, eval):
+    def _extract_drift_score(self, eval):
         try:
             for metric in eval.dict()["metrics"]:
                 result = metric.get("result", {})

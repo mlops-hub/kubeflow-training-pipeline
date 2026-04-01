@@ -33,7 +33,6 @@ def preprocess_data(df_path: str, parquet_output_path: str):
     NUMERIC_COLS = [
         "years_at_company",
         "company_tenure",
-        "annual_income",
         "role_stagnation_ratio",
         "tenure_gap",
         "number_of_promotions",
@@ -49,6 +48,7 @@ def preprocess_data(df_path: str, parquet_output_path: str):
     #  - Check if distance between 1 and 2 is same as 3 and 4 ?
     #  - use OneHotEncoder unless you have strong reason not to.
     CATEGORICAL_COLS = [
+        "annual_income",
         "education_level",
         "job_level",
         "company_size",

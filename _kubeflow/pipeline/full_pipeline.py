@@ -15,7 +15,7 @@ from _kubeflow.components.model_components._07_training import trainer_model_com
 from _kubeflow.components.model_components._08_evaluation import evaluation_component
 from _kubeflow.components.model_components._06_tuning import tuning_component
 from _kubeflow.components.model_components._09_register import register_model_component
-from _kubeflow.components.monitor_component.monitor_components import run_monitor_comp
+# from _kubeflow.components.monitor_component.monitor_components import run_monitor_comp
 
 # util
 from _kubeflow.components.util.wait_job import wait_for_training
@@ -34,14 +34,18 @@ def full_pipeline(
     recall_threshold: float = 0.65,
     feast_repo_path: str = "_feast/feature_repo",
     minio_endpoint: str = "http://minio-service.kubeflow:9000",
-    minio_access_key: str = "<minio-access-key>",
-    minio_secret_key: str = "<minio-secret-key>",
+    minio_access_key: str = "minio",
+    minio_secret_key: str = "minio123",
+    is_retrain: bool = False,
 ):
     # data pipeline
     # -----------------------------------------------------
-    ingest = ingestion_component()
+    ingest = ingestion_component(
+        is_retrain=is_retrain
+    )
     
     validate = validation_component(
+        is_retrain=is_retrain,
         input_data=ingest.outputs['output_data']
     )
 
@@ -140,10 +144,10 @@ def full_pipeline(
         mlflow_run_id=tuning.outputs["mlflow_run_id"],
     ).after(eval)
 
-    # Monitoring step: run Evidently monitor after model registration
-    monitor = run_monitor_comp().after(reg)
-    monitor.set_caching_options(False)
-    kubernetes.set_image_pull_policy(monitor, "IfNotPresent")
+    # # Monitoring step: run Evidently monitor after model registration
+    # monitor = run_monitor_comp().after(reg)
+    # monitor.set_caching_options(False)
+    # kubernetes.set_image_pull_policy(monitor, "IfNotPresent")
 
 
 # Compile pipeline 
