@@ -13,6 +13,9 @@ myvenv/
 
 /src/mlflow_runs
 
+*.csv
+*.DS_Store
+
 /deploy_kserve
 
 /feature_store_ex.yaml
