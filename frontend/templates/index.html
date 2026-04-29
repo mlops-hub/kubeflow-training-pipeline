@@ -1,187 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Employee Attrition Prediction</title>
-    <link rel="stylesheet" href="/static/css/style.css" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        crossorigin="anonymous" />
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"
-        defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Insights | Attrition Prediction</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-
 <body>
-    <div class="container py-5">
-        <h1 class="mb-4">Employee Attrition Prediction</h1>
 
-        <!-- Employee ID Lookup -->
-        <div class="card mb-4 border-primary">
-            <div class="card-body">
-                <h5 class="card-title">🔍 Lookup Employee</h5>
-                <p class="card-text text-muted">Enter an Employee ID to auto-fill features from Feast, or fill manually
-                    below.</p>
-                <div class="input-group">
-                    <input type="number" class="form-control" id="employeeIdInput"
-                        placeholder="Enter Employee ID e.g. 9063" />
-                    <button class="btn btn-outline-primary" id="fetchFeaturesBtn" type="button">
-                        Fetch Features
-                    </button>
-                </div>
-                <div id="fetchStatus" class="mt-2"></div>
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+        <div class="nav-left">
+            <div class="nav-brand">
+                <!-- DevOpsCube Logo -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="38" height="38" aria-label="DevOpsCube logo">
+                    <!-- Top face -->
+                    <polygon points="50,8 88,28 50,48 12,28" fill="#ef5350"/>
+                    <!-- Left face -->
+                    <polygon points="12,28 50,48 50,92 12,72" fill="#b71c1c"/>
+                    <!-- Right face -->
+                    <polygon points="50,48 88,28 88,72 50,92" fill="#c62828"/>
+                    <!-- Large gear -->
+                    <circle cx="37" cy="27" r="13" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="2.8"/>
+                    <circle cx="37" cy="27" r="5" fill="rgba(255,255,255,0.88)"/>
+                    <rect x="35" y="11" width="4" height="5" rx="1" fill="rgba(255,255,255,0.88)"/>
+                    <rect x="35" y="38" width="4" height="5" rx="1" fill="rgba(255,255,255,0.88)"/>
+                    <rect x="19" y="25" width="5" height="4" rx="1" fill="rgba(255,255,255,0.88)"/>
+                    <rect x="51" y="25" width="5" height="4" rx="1" fill="rgba(255,255,255,0.88)"/>
+                    <rect x="23.5" y="14.5" width="4.5" height="4.5" rx="1" fill="rgba(255,255,255,0.88)" transform="rotate(-45 25.75 16.75)"/>
+                    <rect x="47.5" y="14.5" width="4.5" height="4.5" rx="1" fill="rgba(255,255,255,0.88)" transform="rotate(45 49.75 16.75)"/>
+                    <rect x="23.5" y="35.5" width="4.5" height="4.5" rx="1" fill="rgba(255,255,255,0.88)" transform="rotate(45 25.75 37.75)"/>
+                    <rect x="47.5" y="35.5" width="4.5" height="4.5" rx="1" fill="rgba(255,255,255,0.88)" transform="rotate(-45 49.75 37.75)"/>
+                    <!-- Small gear -->
+                    <circle cx="64" cy="22" r="8" fill="none" stroke="rgba(255,255,255,0.72)" stroke-width="2.2"/>
+                    <circle cx="64" cy="22" r="3" fill="rgba(255,255,255,0.72)"/>
+                    <rect x="62" y="12" width="3.5" height="4" rx="0.8" fill="rgba(255,255,255,0.72)"/>
+                    <rect x="62" y="28" width="3.5" height="4" rx="0.8" fill="rgba(255,255,255,0.72)"/>
+                    <rect x="55" y="20" width="4" height="3.5" rx="0.8" fill="rgba(255,255,255,0.72)"/>
+                    <rect x="69" y="20" width="4" height="3.5" rx="0.8" fill="rgba(255,255,255,0.72)"/>
+                    <!-- DEV on left face -->
+                    <text x="15" y="74" font-family="Arial,sans-serif" font-size="11.5" font-weight="bold" fill="rgba(255,255,255,0.95)">DEV</text>
+                    <!-- OPS on right face -->
+                    <text x="54" y="74" font-family="Arial,sans-serif" font-size="11.5" font-weight="bold" fill="rgba(255,255,255,0.95)">OPS</text>
+                </svg>
+                <span class="nav-brand-text">DevOpsCube</span>
             </div>
         </div>
-
-        <form id="prediction-form">
-            <input type="hidden" id="employeeIdHidden" name="employee_id" />
-
-            <!-- Years & Tenure -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <small class="form-text">Years worked in current role.</small><br />
-                    <label class="form-label">Years at Company</label>
-                    <input type="number" class="form-control" id="yearsAtCompany" name="years_at_company" min="0"
-                        step="1" required />
+        <div class="nav-right">
+            <button class="theme-toggle" id="themeToggle" title="Toggle dark / light mode">
+                <i data-lucide="moon"></i>
+            </button>
+            <div class="profile-wrapper" id="profileWrapper">
+                <div class="user-avatar" id="userAvatar" title="User profile">
+                    <i data-lucide="user"></i>
                 </div>
-                <div class="col-md-6">
-                    <small class="form-text">Total years worked in the company.</small><br />
-                    <label class="form-label">Company Tenure</label>
-                    <input type="number" class="form-control" id="companyTenure" name="company_tenure" min="0"
-                        step="1" required />
+                <div class="profile-dropdown" id="profileDropdown">
+                    <div class="profile-dropdown-avatar">
+                        <i data-lucide="user"></i>
+                    </div>
+                    <div class="profile-dropdown-name">DevOpsCube</div>
                 </div>
             </div>
+        </div>
+    </nav>
 
-            <!-- Promotions & Dependents -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label">Number of Promotions</label>
-                    <input type="number" class="form-control" name="number_of_promotions" min="0" step="1" required />
+    <div class="app-wrapper">
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <div class="brand mb-4">
+                    <div class="brand-icon">
+                        <i data-lucide="brain-circuit"></i>
+                    </div>
+                    <span class="brand-text">HR Insights AI</span>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Number of Dependents</label>
-                    <input type="number" class="form-control" name="number_of_dependents" min="0" step="1" required />
-                </div>
-            </div>
+                <h1>Employee Retention Predictor</h1>
+                <p>Enter an employee ID to instantly analyze attrition risk using AI.</p>
+            </header>
 
-            <!-- Work Mode -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label">Overtime</label>
-                    <select class="form-select" name="overtime" required>
-                        <option value="">-- Select --</option>
-                        <option value="1">Yes</option>
-                        <option value="0">No</option>
-                    </select>
+            <!-- Employee Lookup Section (The only part visible) -->
+            <section class="card">
+                <div class="header-content">
+                    <h2><i data-lucide="search"></i> Attrition Risk Analysis</h2>
+                    <p>Enter an ID to generate a risk assessment from the latest HR data.</p>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Remote Work</label>
-                    <select class="form-select" name="remote_work" required>
-                        <option value="">-- Select --</option>
-                        <option value="1">Yes</option>
-                        <option value="0">No</option>
-                    </select>
+                <div class="lookup-input-group">
+                    <input type="text" id="employeeIdInput" placeholder="Enter Employee ID (e.g., 9063)">
+                    <button type="button" id="lookupBtn" class="btn-secondary">
+                        <i data-lucide="zap"></i> Generate Prediction
+                    </button>
                 </div>
-            </div>
+                <div id="fetchStatus"></div>
+            </section>
 
-            <!-- Performance & Education -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label">Performance Rating</label>
-                    <select class="form-select" name="performance_rating" required>
-                        <option value="">-- Select --</option>
-                        <option value="1">Low</option>
-                        <option value="2">Below Average</option>
-                        <option value="3">Average</option>
-                        <option value="4">High</option>
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Education Level</label>
-                    <select class="form-select" name="education_level" required>
-                        <option value="">-- Select --</option>
-                        <option value="1">High School</option>
-                        <option value="2">Bachelor's</option>
-                        <option value="3">Master's</option>
-                        <option value="4">Associate</option>
-                        <option value="5">PhD</option>
-                    </select>
-                </div>
-            </div>
+            <!-- Results Section (Hidden by default, shown after prediction) -->
+            <div id="result" class="mt-4" style="display: none;"></div>
+        </main>
+    </div>
 
-            <!-- Job & Company -->
-            <div class="row mb-3">
-                <div class="col-md-4">
-                    <label class="form-label">Job Level</label>
-                    <select class="form-select" name="job_level" required>
-                        <option value="">-- Select --</option>
-                        <option value="1">Entry</option>
-                        <option value="2">Mid</option>
-                        <option value="3">Senior</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Company Size</label>
-                    <select class="form-select" name="company_size" required>
-                        <option value="">-- Select --</option>
-                        <option value="1">Small</option>
-                        <option value="2">Medium</option>
-                        <option value="3">Large</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Company Reputation</label>
-                    <select class="form-select" name="company_reputation" required>
-                        <option value="">-- Select --</option>
-                        <option value="1">Poor</option>
-                        <option value="2">Fair</option>
-                        <option value="3">Good</option>
-                        <option value="4">Excellent</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Satisfaction & Opportunities -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <small class="form-text">Work-Life Balance: 1/0 | Job: 1/0 | Employee Recognition: 1/0 | All:
-                        4</small><br />
-                    <label class="form-label">Overall Satisfaction (1–4)</label>
-                    <input type="number" class="form-control" name="overall_satisfaction" min="1" max="4" required />
-                </div>
-                <div class="col-md-6">
-                    <small class="form-text">Leadership: 1/0 | Innovation: 1/0 | Both: 2</small><br />
-                    <label class="form-label">Opportunities (0–2)</label>
-                    <input type="number" class="form-control" name="opportunities" min="0" max="2" required />
-                </div>
-            </div>
-
-            <!-- Income & Age -->
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <small class="form-text">[0-2.5L]: 0 | [2.5L-4.5L]: 1 | [4.5L-6L]: 2 | [6L-20L]: 3 | >20L:
-                        4</small><br />
-                    <label class="form-label">Annual Income Bin (0–4)</label>
-                    <input type="number" class="form-control" name="annual_income" min="0" max="4" required />
-                </div>
-                <div class="col-md-6">
-                    <small class="form-text">[18-25]: 1 | [25-35]: 2 | [35-45]: 3 | [45-60]: 4 | [60-65+]:
-                        5</small><br />
-                    <label class="form-label">Age Group (1–5)</label>
-                    <input type="number" class="form-control" name="age_group" min="1" max="5" required />
-                </div>
-            </div>
-
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">Predict Attrition</button>
-                <button type="button" class="btn btn-outline-secondary" id="clearBtn">Clear</button>
-            </div>
-        </form>
-
-        <div id="result" class="mt-4"></div>
+    <!-- Custom Popup / Modal for Errors -->
+    <div id="customModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-icon" id="modalIcon"></div>
+            <h3 id="modalTitle">Notification</h3>
+            <p id="modalMessage">Message content goes here.</p>
+            <button class="btn btn-primary" onclick="closeModal()">Dismiss</button>
+        </div>
     </div>
 
     <script src="/static/js/script.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
 </body>
-
 </html>

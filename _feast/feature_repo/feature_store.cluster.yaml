@@ -1,0 +1,15 @@
+project: employee_attrition
+provider: local
+
+registry:
+    # path: registry.db
+    registry_type: sql
+    path: postgresql+psycopg://feast:feast@postgres.feast.svc.cluster.local:5432/feast
+    cache_ttl_seconds: 60
+
+online_store:
+    type: redis
+    connection_string: "redis.feast.svc.cluster.local:6379,password=changeMeVeryStrong"
+
+offline_store:
+    type: file
